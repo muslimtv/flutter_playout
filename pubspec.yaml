@@ -1,7 +1,7 @@
 name: flutter_playout
-description: AV Playout in Flutter
-version: 1.0.0
-author: Muslim Television Ahmadiyya International <khuramkhalid@mta.tv>
+description: AV Playout in Flutter. This plugin can play audio stream from a URL and provides background audio and lock screen controls for both iOS and Android.
+version: 1.0.1
+author: Muslim Television Ahmadiyya International <developer@mta.tv>
 homepage: https://www.mta.tv
 repository: https://github.com/muslimtv/flutter_playout
 

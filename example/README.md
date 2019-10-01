@@ -1,16 +1,237 @@
-# flutter_playout_example
+# How to use flutter_playout
+Please see the below implementation for how to use this plugin for audio playback.
 
-Demonstrates how to use the flutter_playout plugin.
+```$xslt
+import 'package:flutter/material.dart';
+import 'dart:async';
 
-## Getting Started
+import 'package:flutter_playout/audio.dart';
+import 'package:flutter_playout/player_state.dart';
 
-This project is a starting point for a Flutter application.
+void main() => runApp(AudioPlayoutApp());
 
-A few resources to get you started if this is your first Flutter project:
+class AudioPlayoutApp extends StatefulWidget {
+  // Audio url to play
+  final String url = "https://your_audio_stream.com/stream_test.mp3";
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+  // Audio track title. this will also be displayed in lock screen controls
+  final String title = "Track Title";
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+  // Audio track subtitle. this will also be displayed in lock screen controls
+  final String subtitle = "Track Subtitle";
+
+  // Audio duration in milliseconds
+  final int duration = 1604277;
+
+  @override
+  _AudioPlayoutApp createState() => _AudioPlayoutApp();
+}
+
+class _AudioPlayoutApp extends State<AudioPlayoutApp> {
+  Audio _audioPlayer;
+  PlayerState audioPlayerState = PlayerState.STOPPED;
+
+  Duration duration = Duration(milliseconds: 1);
+  Duration position = Duration.zero;
+
+  get isPlaying => audioPlayerState == PlayerState.PLAYING;
+  get isPaused =>
+      audioPlayerState == PlayerState.PAUSED ||
+      audioPlayerState == PlayerState.STOPPED;
+
+  get durationText =>
+      duration != null ? duration.toString().split('.').first : '';
+  get positionText =>
+      position != null ? position.toString().split('.').first : '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Set track duration
+    duration = Duration(milliseconds: widget.duration);
+
+    // Init audio player with a callback to handle events
+    _audioPlayer = new Audio(processAudioEvents);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: "AV Playout",
+      home: Scaffold(
+        appBar: AppBar(),
+        body: Container(
+          color: Colors.black,
+          child: _buildPlayerControls(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerControls() {
+    return Container(
+      color: Colors.transparent,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              IconButton(
+                splashColor: Colors.transparent,
+                icon: Icon(
+                  isPlaying
+                      ? Icons.pause_circle_filled
+                      : Icons.play_circle_filled,
+                  color: Colors.white,
+                  size: 50,
+                ),
+                onPressed: () {
+                  if (isPlaying) {
+                    pause();
+                  } else {
+                    play();
+                  }
+                },
+              ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.fromLTRB(20.0, 11.0, 5.0, 3.0),
+                    child: Text(widget.title,
+                        style: TextStyle(fontSize: 9, color: Colors.grey[100])),
+                  ),
+                  Container(
+                    padding: EdgeInsets.fromLTRB(20.0, 0.0, 5.0, 0.0),
+                    child: Text(widget.subtitle,
+                        style: TextStyle(fontSize: 19, color: Colors.white)),
+                  ),
+                ],
+              )
+            ],
+          ),
+          Container(
+            height: 15.0,
+          ),
+          Slider(
+            activeColor: Colors.white,
+            value: position?.inMilliseconds?.toDouble() ?? 0.0,
+            onChanged: (double value) {
+              setState(() {
+                position = Duration(milliseconds: value.toInt());
+              });
+              seekTo(value / 1000);
+            },
+            min: 0.0,
+            max: duration.inMilliseconds.toDouble(),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Container(),
+              Container(
+                padding: EdgeInsets.fromLTRB(20, 5, 20, 10),
+                child: Text(
+                  _playbackPositionString(),
+                  style: Theme.of(context)
+                      .textTheme
+                      .body1
+                      .copyWith(color: Colors.white),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  String _playbackPositionString() {
+    var currentPosition = Duration(
+        milliseconds: duration.inMilliseconds - position.inMilliseconds);
+
+    return currentPosition.toString().split('.').first;
+  }
+
+  // Request audio play
+  Future<void> play() async {
+    // here we send position in case user has scrubbed already before hitting play
+    // in which case we want playback to start from where user has requested
+    _audioPlayer.play(
+        widget.url, widget.title, widget.subtitle, widget.duration, position);
+    setState(() {
+      audioPlayerState = PlayerState.PLAYING;
+    });
+  }
+
+  // Request audio pause
+  Future<void> pause() async {
+    _audioPlayer.pause();
+    setState(() => audioPlayerState = PlayerState.PAUSED);
+  }
+
+  // Request audio stop. this will also clear lock screen controls
+  Future<void> stop() async {
+    _audioPlayer.stop();
+
+    setState(() {
+      audioPlayerState = PlayerState.STOPPED;
+      position = Duration.zero;
+    });
+  }
+
+  // Seek to a point in seconds
+  Future<void> seekTo(double seconds) async {
+    _audioPlayer.seekTo(seconds);
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  // Callback for player events
+  void processAudioEvents(dynamic event) async {
+    String eventName = event["name"];
+
+    switch (eventName) {
+
+      /* onTime - fires every second */
+      case "onTime":
+        setState(() {
+          position = Duration(seconds: event["time"].toInt());
+        });
+
+        /* reset on playback end */
+        if (position.inSeconds > 0 &&
+            position.inSeconds >= duration.inSeconds) {
+          stop();
+        }
+
+        break;
+
+      /* onPause */
+      case "onPause":
+        setState(() {
+          audioPlayerState = PlayerState.PAUSED;
+        });
+
+        break;
+
+      /* onPlay */
+      case "onPlay":
+        setState(() {
+          audioPlayerState = PlayerState.PLAYING;
+        });
+
+        break;
+    }
+  }
+}
+
+```
