@@ -18,6 +18,7 @@ import io.flutter.plugin.common.JSONMethodCodec;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
+import io.flutter.view.FlutterNativeView;
 
 public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
 
@@ -36,6 +37,23 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     private String subtitle;
 
     private int startPositionInMills;
+
+    public static void registerWith(PluginRegistry.Registrar registrar) {
+
+        final AudioPlayer plugin = new AudioPlayer(registrar.messenger(), registrar.activeContext());
+
+        MethodChannel channel = new MethodChannel(registrar.messenger(), "tv.mta/PluginRegistrar");
+
+        channel.setMethodCallHandler(plugin);
+
+        registrar.addViewDestroyListener(new PluginRegistry.ViewDestroyListener() {
+            @Override
+            public boolean onViewDestroy(FlutterNativeView view) {
+                plugin.onDestroy();
+                return false;
+            }
+        });
+    }
 
     /* handles messages coming back from AudioServiceBinder */
     static class IncomingMessageHandler extends Handler {

@@ -1,33 +1,215 @@
 # How to use flutter_playout
-Please see the below implementation for how to use this plugin for audio playback.
+Below is an example app showcasing both video and audio players from this plugin.
 
-```$xslt
+## main.dart
+```dart
 import 'package:flutter/material.dart';
-import 'dart:async';
+
+import 'package:flutter_playout_example/audio.dart';
+import 'package:flutter_playout_example/video.dart';
+
+void main() => runApp(PlayoutExample());
+
+class PlayoutExample extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "AV Playout",
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          brightness: Brightness.dark,
+          backgroundColor: Colors.grey[900],
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {},
+          ),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.favorite),
+              onPressed: () {},
+            )
+          ],
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Icon(
+                Icons.local_play,
+                color: Colors.white,
+              ),
+              Container(
+                width: 7.0,
+              ),
+              Text(
+                "AV Player",
+                style: Theme.of(context)
+                    .textTheme
+                    .title
+                    .copyWith(color: Colors.white),
+              )
+            ],
+          ),
+        ),
+        body: Container(
+          color: Colors.black,
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(17.0, 33.0, 17.0, 0.0),
+                  child: Text(
+                    "Video Player",
+                    style: Theme.of(context).textTheme.display1.copyWith(
+                        color: Colors.pink[500], fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(17.0, 0.0, 17.0, 30.0),
+                  child: Text(
+                    "Plays video from a URL with background audio support and lock screen controls.",
+                    style: Theme.of(context).textTheme.subhead.copyWith(
+                        color: Colors.white70, fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: VideoPlayout(),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(17.0, 23.0, 17.0, 0.0),
+                  child: Text(
+                    "Audio Player",
+                    style: Theme.of(context).textTheme.display1.copyWith(
+                        color: Colors.pink[500], fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(17.0, 0.0, 17.0, 30.0),
+                  child: Text(
+                    "Plays audio from a URL with background audio support and lock screen controls.",
+                    style: Theme.of(context).textTheme.subhead.copyWith(
+                        color: Colors.white70, fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: AudioPlayout(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+```
+
+## Video Playout
+#### package:flutter_playout_example/video.dart
+
+```dart
+import 'package:flutter/material.dart';
+
+import 'package:flutter_playout/video.dart';
+import 'package:flutter_playout/player_observer.dart';
+
+class VideoPlayout extends StatelessWidget with PlayerObserver {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Video(
+          autoPlay: true,
+          title: "Reaching The Corners Of The Earth",
+          subtitle: "MTA International",
+          url: "https://your_video_stream.com/stream_test.m3u8",
+          onViewCreated: _onViewCreated,
+        ),
+      ),
+    );
+  }
+
+  // Start listening for player events
+  void _onViewCreated(int viewId) {
+    listenForVideoPlayerEvents(viewId);
+  }
+
+  @override
+  void onPlay() {
+    // TODO: implement m_onPlay
+    super.onPlay();
+  }
+
+  @override
+  void onPause() {
+    // TODO: implement m_onPause
+    super.onPause();
+  }
+
+  @override
+  void onComplete() {
+    // TODO: implement m_onComplete
+    super.onComplete();
+  }
+
+  @override
+  void onTime(int position) {
+    // TODO: implement m_onTime
+    super.onTime(position);
+  }
+
+  @override
+  void onSeek(int position, double offset) {
+    // TODO: implement m_onSeek
+    super.onSeek(position, offset);
+  }
+
+  @override
+  void onError(String error) {
+    // TODO: implement m_onError
+    super.onError(error);
+  }
+}
+
+```
+## Audio Playout 
+#### package:flutter_playout_example/audio.dart
+```dart
+import 'package:flutter/material.dart';
 
 import 'package:flutter_playout/audio.dart';
 import 'package:flutter_playout/player_state.dart';
+import 'package:flutter_playout/player_observer.dart';
 
-void main() => runApp(AudioPlayoutApp());
-
-class AudioPlayoutApp extends StatefulWidget {
+class AudioPlayout extends StatefulWidget {
   // Audio url to play
   final String url = "https://your_audio_stream.com/stream_test.mp3";
 
   // Audio track title. this will also be displayed in lock screen controls
-  final String title = "Track Title";
+  final String title = "MTA International";
 
   // Audio track subtitle. this will also be displayed in lock screen controls
-  final String subtitle = "Track Subtitle";
+  final String subtitle = "Reaching The Corners Of The Earth";
 
   // Audio duration in milliseconds
   final int duration = 1604277;
 
   @override
-  _AudioPlayoutApp createState() => _AudioPlayoutApp();
+  _AudioPlayout createState() => _AudioPlayout();
 }
 
-class _AudioPlayoutApp extends State<AudioPlayoutApp> {
+class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   Audio _audioPlayer;
   PlayerState audioPlayerState = PlayerState.STOPPED;
 
@@ -53,19 +235,52 @@ class _AudioPlayoutApp extends State<AudioPlayoutApp> {
 
     // Init audio player with a callback to handle events
     _audioPlayer = new Audio(processAudioEvents);
+
+    // Listen for audio player events
+    listenForAudioPlayerEvents();
+  }
+
+  @override
+  void onPlay() {
+    // TODO: implement m_onPlay
+    super.onPlay();
+  }
+
+  @override
+  void onPause() {
+    // TODO: implement m_onPause
+    super.onPause();
+  }
+
+  @override
+  void onComplete() {
+    // TODO: implement m_onComplete
+    super.onComplete();
+  }
+
+  @override
+  void onTime(int position) {
+    // TODO: implement m_onTime
+    super.onTime(position);
+  }
+
+  @override
+  void onSeek(int position, double offset) {
+    // TODO: implement m_onSeek
+    super.onSeek(position, offset);
+  }
+
+  @override
+  void onError(String error) {
+    // TODO: implement m_onError
+    super.onError(error);
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "AV Playout",
-      home: Scaffold(
-        appBar: AppBar(),
-        body: Container(
-          color: Colors.black,
-          child: _buildPlayerControls(),
-        ),
-      ),
+    return Container(
+      color: Colors.grey[900],
+      child: _buildPlayerControls(),
     );
   }
 
@@ -103,7 +318,8 @@ class _AudioPlayoutApp extends State<AudioPlayoutApp> {
                   Container(
                     padding: EdgeInsets.fromLTRB(20.0, 11.0, 5.0, 3.0),
                     child: Text(widget.title,
-                        style: TextStyle(fontSize: 9, color: Colors.grey[100])),
+                        style:
+                            TextStyle(fontSize: 11, color: Colors.grey[100])),
                   ),
                   Container(
                     padding: EdgeInsets.fromLTRB(20.0, 0.0, 5.0, 0.0),

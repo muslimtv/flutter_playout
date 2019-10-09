@@ -1,3 +1,7 @@
+## 1.0.2 [October 9, 2019]
+
+* Implemented video playback for iOS
+
 ## 1.0.1
 * Updated documentation to include example implementation for the plugin
 

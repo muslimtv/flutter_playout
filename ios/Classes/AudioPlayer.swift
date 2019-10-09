@@ -123,6 +123,17 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
             
             audioPlayer = AVPlayer(url: URL(string: audioURL)!)
             
+            let center = NotificationCenter.default
+            
+            center.addObserver(self, selector: #selector(onComplete(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.audioPlayer.currentItem)
+            center.addObserver(self, selector:#selector(onAVPlayerNewErrorLogEntry(_:)), name: .AVPlayerItemNewErrorLogEntry, object: audioPlayer.currentItem)
+            center.addObserver(self, selector:#selector(onAVPlayerFailedToPlayToEndTime(_:)), name: .AVPlayerItemFailedToPlayToEndTime, object: audioPlayer.currentItem)
+            
+            /* Add observer for AVPlayer status and AVPlayerItem status */
+            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
+            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
+            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+            
             let interval = CMTime(seconds: 1.0,
             preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             
@@ -140,6 +151,79 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         }
     }
     
+    @objc func onComplete(_ notification: Notification) {
+        self.flutterEventSink?(["name":"onComplete"])
+    }
+    
+    /* Observe If AVPlayerItem.status Changed to Fail */
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        
+        if keyPath == #keyPath(AVPlayerItem.status) {
+            
+            let newStatus: AVPlayerItemStatus
+            
+            if let newStatusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
+                newStatus = AVPlayerItemStatus(rawValue: newStatusAsNumber.intValue)!
+            } else {
+                newStatus = .unknown
+            }
+            
+            if newStatus == .failed {
+                self.flutterEventSink?(["name":"onError", "error":(String(describing: self.audioPlayer.currentItem?.error))])
+            } else if newStatus == .readyToPlay {
+                self.flutterEventSink?(["name":"onReady"])
+            }
+        }
+        
+        else if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+            
+            guard let p = object as! AVPlayer? else {
+                return
+            }
+            
+            if #available(iOS 10.0, *) {
+                
+                switch (p.timeControlStatus) {
+                
+                case AVPlayerTimeControlStatus.paused:
+                    self.flutterEventSink?(["name":"onPause"])
+                    break
+                
+                case AVPlayerTimeControlStatus.playing:
+                    self.flutterEventSink?(["name":"onPlay"])
+                    break
+                
+                case .waitingToPlayAtSpecifiedRate: break
+                }
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+    }
+    
+    @objc func onAVPlayerNewErrorLogEntry(_ notification: Notification) {
+        guard let object = notification.object, let playerItem = object as? AVPlayerItem else {
+            return
+        }
+        guard let error: AVPlayerItemErrorLog = playerItem.errorLog() else {
+            return
+        }
+        guard var errorMessage = error.extendedLogData() else {
+            return
+        }
+        
+        errorMessage.removeLast()
+        
+        self.flutterEventSink?(["name":"onError", "error":String(data: errorMessage, encoding: .utf8)])
+    }
+
+    @objc func onAVPlayerFailedToPlayToEndTime(_ notification: Notification) {
+        guard let error = notification.userInfo!["AVPlayerItemFailedToPlayToEndTimeErrorKey"] else {
+            return
+        }
+        self.flutterEventSink?(["name":"onError", "error":error])
+    }
+    
     private func setupRemoteTransportControls() {
         
         let commandCenter = MPRemoteCommandCenter.shared()
@@ -147,8 +231,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         // Add handler for Play Command
         commandCenter.playCommand.addTarget { event in
             if self.audioPlayer.rate == 0.0 {
-                self.audioPlayer.play()
-                self.flutterEventSink?(["name":"onPlay"])
+                self.play()
                 return .success
             }
             return .commandFailed
@@ -157,8 +240,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         // Add handler for Pause Command
         commandCenter.pauseCommand.addTarget { event in
             if self.audioPlayer.rate == 1.0 {
-                self.audioPlayer.pause()
-                self.flutterEventSink?(["name":"onPause"])
+                self.pause()
                 return .success
             }
             return .commandFailed
@@ -178,6 +260,17 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func play() {
+        
+        audioPlayer.play()
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.audioPlayer.currentTime()))
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
     }
     
     private func pause() {

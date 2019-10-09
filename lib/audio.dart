@@ -2,17 +2,9 @@ import 'package:flutter/services.dart';
 
 class Audio {
   MethodChannel _audioChannel;
-  EventChannel _eventChannel;
 
   Audio(Function audioEventsCallback) {
     _audioChannel = const MethodChannel('tv.mta/NativeAudioChannel');
-
-    if (audioEventsCallback != null) {
-      _eventChannel =
-          EventChannel("tv.mta/NativeAudioEventChannel", JSONMethodCodec());
-
-      _eventChannel.receiveBroadcastStream().listen(audioEventsCallback);
-    }
   }
 
   Future<void> play(String url, String title, String subtitle,
