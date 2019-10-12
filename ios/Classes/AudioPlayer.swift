@@ -16,7 +16,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         let audioSession = AVAudioSession.sharedInstance()
         
         do {
-            try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+            try audioSession.setCategory(AVAudioSession.Category.playback)
         } catch _ { }
         
         let channel = FlutterMethodChannel(name: "tv.mta/NativeAudioChannel", binaryMessenger: registrar.messenger())
@@ -114,7 +114,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
 
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(AVAudioSessionCategoryPlayback, with: AVAudioSession.CategoryOptions.allowBluetooth)
+            try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
             try audioSession.setActive(true)
         } catch _ { }
         
@@ -168,10 +168,10 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         
         if keyPath == #keyPath(AVPlayerItem.status) {
             
-            let newStatus: AVPlayerItemStatus
+            let newStatus: AVPlayerItem.Status
             
             if let newStatusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
-                newStatus = AVPlayerItemStatus(rawValue: newStatusAsNumber.intValue)!
+                newStatus = AVPlayerItem.Status(rawValue: newStatusAsNumber.intValue)!
             } else {
                 newStatus = .unknown
             }
@@ -202,6 +202,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
                     break
                 
                 case .waitingToPlayAtSpecifiedRate: break
+                @unknown default:
+                    break
                 }
             } else {
                 // Fallback on earlier versions

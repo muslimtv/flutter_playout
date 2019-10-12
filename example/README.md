@@ -129,10 +129,11 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Video(
-          autoPlay: true,
-          title: "Reaching The Corners Of The Earth",
-          subtitle: "MTA International",
-          url: "https://your_video_stream.com/stream_test.m3y8",
+          autoPlay: false,
+          title: "MTA International",
+          subtitle: "Reaching The Corners Of The Earth",
+          isLiveStream: false,
+          url: "https://your_video_stream.com/stream_test.m3u8",
           onViewCreated: _onViewCreated,
         ),
       ),
@@ -185,10 +186,9 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
 #### package:flutter_playout_example/audio.dart
 ```dart
 import 'package:flutter/material.dart';
-
 import 'package:flutter_playout/audio.dart';
-import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/player_observer.dart';
+import 'package:flutter_playout/player_state.dart';
 
 class AudioPlayout extends StatefulWidget {
   // Audio url to play
@@ -212,7 +212,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   PlayerState audioPlayerState = PlayerState.STOPPED;
 
   Duration duration = Duration(milliseconds: 1);
-  Duration position = Duration.zero;
+  Duration currentPlaybackPosition = Duration.zero;
 
   get isPlaying => audioPlayerState == PlayerState.PLAYING;
   get isPaused =>
@@ -221,8 +221,9 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   get durationText =>
       duration != null ? duration.toString().split('.').first : '';
-  get positionText =>
-      position != null ? position.toString().split('.').first : '';
+  get positionText => currentPlaybackPosition != null
+      ? currentPlaybackPosition.toString().split('.').first
+      : '';
 
   @override
   void initState() {
@@ -232,7 +233,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
     duration = Duration(milliseconds: widget.duration);
 
     // Init audio player with a callback to handle events
-    _audioPlayer = new Audio(processAudioEvents);
+    _audioPlayer = new Audio();
 
     // Listen for audio player events
     listenForAudioPlayerEvents();
@@ -240,37 +241,56 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   @override
   void onPlay() {
-    // TODO: implement m_onPlay
+    print("onPlay");
+    setState(() {
+      audioPlayerState = PlayerState.PLAYING;
+    });
     super.onPlay();
   }
 
   @override
   void onPause() {
-    // TODO: implement m_onPause
+    print("onPause");
+    setState(() {
+      audioPlayerState = PlayerState.PAUSED;
+    });
     super.onPause();
   }
 
   @override
   void onComplete() {
-    // TODO: implement m_onComplete
+    print("onComplete");
+    setState(() {
+      audioPlayerState = PlayerState.PAUSED;
+    });
     super.onComplete();
   }
 
   @override
   void onTime(int position) {
-    // TODO: implement m_onTime
+    print("onTime $position");
+    setState(() {
+      currentPlaybackPosition = Duration(seconds: position);
+    });
+
+    /* reset on playback end */
+    if (currentPlaybackPosition.inSeconds > 0 &&
+        currentPlaybackPosition.inSeconds >= duration.inSeconds) {
+      stop();
+    }
+
     super.onTime(position);
   }
 
   @override
   void onSeek(int position, double offset) {
-    // TODO: implement m_onSeek
+    print("onSeek $position $offset");
     super.onSeek(position, offset);
   }
 
   @override
   void onError(String error) {
-    // TODO: implement m_onError
+    print("onError $error");
     super.onError(error);
   }
 
@@ -333,10 +353,10 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
           ),
           Slider(
             activeColor: Colors.white,
-            value: position?.inMilliseconds?.toDouble() ?? 0.0,
+            value: currentPlaybackPosition?.inMilliseconds?.toDouble() ?? 0.0,
             onChanged: (double value) {
               setState(() {
-                position = Duration(milliseconds: value.toInt());
+                currentPlaybackPosition = Duration(milliseconds: value.toInt());
               });
               seekTo(value / 1000);
             },
@@ -366,17 +386,22 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   String _playbackPositionString() {
     var currentPosition = Duration(
-        milliseconds: duration.inMilliseconds - position.inMilliseconds);
+        milliseconds:
+            duration.inMilliseconds - currentPlaybackPosition.inMilliseconds);
 
     return currentPosition.toString().split('.').first;
   }
 
   // Request audio play
   Future<void> play() async {
-    // here we send position in case user has scrubbed already before hitting play
-    // in which case we want playback to start from where user has requested
-    _audioPlayer.play(
-        widget.url, widget.title, widget.subtitle, widget.duration, position);
+    // here we send position in case user has scrubbed already before hitting
+    // play in which case we want playback to start from where user has
+    // requested
+    _audioPlayer.play(widget.url,
+        title: widget.title,
+        subtitle: widget.subtitle,
+        position: currentPlaybackPosition,
+        isLiveStream: true);
     setState(() {
       audioPlayerState = PlayerState.PLAYING;
     });
@@ -394,7 +419,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
     setState(() {
       audioPlayerState = PlayerState.STOPPED;
-      position = Duration.zero;
+      currentPlaybackPosition = Duration.zero;
     });
   }
 
@@ -407,44 +432,6 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   void dispose() {
     _audioPlayer.dispose();
     super.dispose();
-  }
-
-  // Callback for player events
-  void processAudioEvents(dynamic event) async {
-    String eventName = event["name"];
-
-    switch (eventName) {
-
-      /* onTime - fires every second */
-      case "onTime":
-        setState(() {
-          position = Duration(seconds: event["time"].toInt());
-        });
-
-        /* reset on playback end */
-        if (position.inSeconds > 0 &&
-            position.inSeconds >= duration.inSeconds) {
-          stop();
-        }
-
-        break;
-
-      /* onPause */
-      case "onPause":
-        setState(() {
-          audioPlayerState = PlayerState.PAUSED;
-        });
-
-        break;
-
-      /* onPlay */
-      case "onPlay":
-        setState(() {
-          audioPlayerState = PlayerState.PLAYING;
-        });
-
-        break;
-    }
   }
 }
 

@@ -1,3 +1,7 @@
+## 1.0.4 [October 12, 2019]
+
+* Updated iOS plugin to use Swift 5 compiler
+
 ## 1.0.3 [October 12, 2019]
 
 * Implemented video playback for Android

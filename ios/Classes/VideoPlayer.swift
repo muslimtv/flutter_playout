@@ -98,7 +98,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(AVAudioSessionCategoryPlayback)
+            try audioSession.setCategory(AVAudioSession.Category.playback)
         } catch _ { }
         
         setupEventChannel(viewId: viewId, messenger: messenger, instance: self)
@@ -168,7 +168,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             do {
                 let audioSession = AVAudioSession.sharedInstance()
-                try audioSession.setCategory(AVAudioSessionCategoryPlayback, with: AVAudioSession.CategoryOptions.allowBluetooth)
+                try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
                 try audioSession.setActive(true)
             } catch _ { }
             
@@ -224,7 +224,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             /* add player view controller to root view controller */
             let viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
-            viewController.addChildViewController(self.playerViewController!)
+            viewController.addChild(self.playerViewController!)
             
             /* return player view controller's view */
             return self.playerViewController!.view
@@ -273,10 +273,10 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* player status notification */
         } else if keyPath == #keyPath(AVPlayerItem.status) {
             
-            let newStatus: AVPlayerItemStatus
+            let newStatus: AVPlayerItem.Status
             
             if let newStatusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
-                newStatus = AVPlayerItemStatus(rawValue: newStatusAsNumber.intValue)!
+                newStatus = AVPlayerItem.Status(rawValue: newStatusAsNumber.intValue)!
             } else {
                 newStatus = .unknown
             }
@@ -311,6 +311,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                     break
                 
                 case .waitingToPlayAtSpecifiedRate: break
+                @unknown default:
+                    break
                 }
             }
             
