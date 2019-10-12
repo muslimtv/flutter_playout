@@ -103,6 +103,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         
         setupEventChannel(viewId: viewId, messenger: messenger, instance: self)
         
+        setupMethodChannel(viewId: viewId, messenger: messenger)
+        
         /* data as JSON */
         let parsedData = args as! [String: Any]
 
