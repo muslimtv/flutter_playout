@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:flutter_playout/video.dart';
 import 'package:flutter_playout/player_observer.dart';
+import 'package:flutter_playout/video.dart';
 
 class VideoPlayout extends StatelessWidget with PlayerObserver {
   @override
@@ -10,9 +9,10 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Video(
-          autoPlay: true,
-          title: "Reaching The Corners Of The Earth",
-          subtitle: "MTA International",
+          autoPlay: false,
+          title: "MTA International",
+          subtitle: "Reaching The Corners Of The Earth",
+          isLiveStream: false,
           url: "https://your_video_stream.com/stream_test.m3u8",
           onViewCreated: _onViewCreated,
         ),
@@ -20,7 +20,6 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
     );
   }
 
-  // Start listening for player events
   void _onViewCreated(int viewId) {
     listenForVideoPlayerEvents(viewId);
   }

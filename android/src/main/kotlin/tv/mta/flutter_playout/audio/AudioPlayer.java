@@ -1,5 +1,6 @@
 package tv.mta.flutter_playout.audio;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.view.FlutterNativeView;
+import tv.mta.flutter_playout.MediaNotificationManagerService;
 
 public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
 
@@ -27,6 +29,8 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     private Handler audioProgressUpdateHandler;
 
     private EventChannel.EventSink eventSink;
+
+    private Activity activity;
 
     private Context context;
 
@@ -41,6 +45,8 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     public static void registerWith(PluginRegistry.Registrar registrar) {
 
         final AudioPlayer plugin = new AudioPlayer(registrar.messenger(), registrar.activeContext());
+
+        plugin.activity = registrar.activity();
 
         MethodChannel channel = new MethodChannel(registrar.messenger(), "tv.mta/PluginRegistrar");
 
@@ -130,6 +136,8 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
             /* Cast and assign background service's onBind method returned iBinder object */
             audioServiceBinder = (AudioServiceBinder) iBinder;
 
+            audioServiceBinder.setActivity(activity);
+
             audioServiceBinder.setContext(context);
 
             audioServiceBinder.setAudioFileUrl(audioURL);
@@ -142,7 +150,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
             audioServiceBinder.startAudio(startPositionInMills);
 
-            doBindPlayerNotificationManagerService();
+            doBindMediaNotificationManagerService();
         }
 
         @Override
@@ -152,54 +160,54 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     };
 
     /**
-     * Whether we have bound to a {@link PlayerNotificationManagerService}.
+     * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
-    private boolean mIsBoundPlayerNotificationManagerService;
+    private boolean mIsBoundMediaNotificationManagerService;
 
     /**
-     * The {@link PlayerNotificationManagerService} we are bound to.
+     * The {@link MediaNotificationManagerService} we are bound to.
      */
-    private PlayerNotificationManagerService mPlayerNotificationManagerService;
+    private MediaNotificationManagerService mMediaNotificationManagerService;
 
     /**
-     * The {@link ServiceConnection} serves as glue between this activity and the {@link PlayerNotificationManagerService}.
+     * The {@link ServiceConnection} serves as glue between this activity and the {@link MediaNotificationManagerService}.
      */
-    private ServiceConnection mPlayerNotificationManagerServiceConnection = new ServiceConnection() {
+    private ServiceConnection mMediaNotificationManagerServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
 
-            mPlayerNotificationManagerService = ((PlayerNotificationManagerService.PlayerNotificationManagerServiceBinder) service)
+            mMediaNotificationManagerService = ((MediaNotificationManagerService.MediaNotificationManagerServiceBinder) service)
                     .getService();
 
-            mPlayerNotificationManagerService.setActiveSession(audioServiceBinder);
+            mMediaNotificationManagerService.setActivePlayer(audioServiceBinder);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
 
-            mPlayerNotificationManagerService = null;
+            mMediaNotificationManagerService = null;
         }
     };
 
-    private void doBindPlayerNotificationManagerService() {
+    private void doBindMediaNotificationManagerService() {
 
         Intent service = new Intent(this.context,
-                PlayerNotificationManagerService.class);
+                MediaNotificationManagerService.class);
 
-        this.context.bindService(service, mPlayerNotificationManagerServiceConnection, Context.BIND_AUTO_CREATE);
+        this.context.bindService(service, mMediaNotificationManagerServiceConnection, Context.BIND_AUTO_CREATE);
 
-        mIsBoundPlayerNotificationManagerService = true;
+        mIsBoundMediaNotificationManagerService = true;
 
         this.context.startService(service);
     }
 
-    private void doUnbindPlayerNotificationManagerService() {
+    private void doUnbindMediaNotificationManagerService() {
 
-        if (mIsBoundPlayerNotificationManagerService) {
+        if (mIsBoundMediaNotificationManagerService) {
 
-            this.context.unbindService(mPlayerNotificationManagerServiceConnection);
+            this.context.unbindService(mMediaNotificationManagerServiceConnection);
 
-            mIsBoundPlayerNotificationManagerService = false;
+            mIsBoundMediaNotificationManagerService = false;
         }
     }
 
@@ -273,7 +281,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
             unBoundAudioService();
 
-            doUnbindPlayerNotificationManagerService();
+            doUnbindMediaNotificationManagerService();
 
             audioServiceBinder = null;
         }
@@ -352,7 +360,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
             unBoundAudioService();
 
-            doUnbindPlayerNotificationManagerService();
+            doUnbindMediaNotificationManagerService();
 
         } catch (Exception e) { /* ignore */ }
     }

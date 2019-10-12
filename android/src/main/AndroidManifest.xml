@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application>
-        <service android:name="tv.mta.flutter_playout.audio.AudioService"
+        <service android:name=".audio.AudioService"
             android:enabled="true"
             android:exported="false"
             android:stopWithTask="false">
@@ -16,13 +16,20 @@
         </service>
 
         <service
-            android:name="tv.mta.flutter_playout.audio.PlayerNotificationManagerService"
+            android:name=".MediaNotificationManagerService"
             android:exported="false"
             android:stopWithTask="false">
         </service>
 
         <receiver
-            android:name="tv.mta.flutter_playout.audio.RemoteReceiver" >
+            android:name=".audio.RemoteReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".video.RemoteReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>

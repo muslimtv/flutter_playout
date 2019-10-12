@@ -12,11 +12,21 @@ import MediaPlayer
 import AVKit
 
 class VideoPlayerFactory: NSObject, FlutterPlatformViewFactory {
+    
+    var videoPlayer:VideoPlayer?
+    
+    var registrar:FlutterPluginRegistrar?
+    
     private var messenger:FlutterBinaryMessenger
     
     /* register video player */
     static func register(with registrar: FlutterPluginRegistrar) {
-        registrar.register(VideoPlayerFactory(messenger: registrar.messenger()), withId: "tv.mta/NativeVideoPlayer")
+        
+        let plugin = VideoPlayerFactory(messenger: registrar.messenger())
+        
+        plugin.registrar = registrar
+            
+        registrar.register(plugin, withId: "tv.mta/NativeVideoPlayer")
     }
     
     init(messenger:FlutterBinaryMessenger) {
@@ -25,15 +35,26 @@ class VideoPlayerFactory: NSObject, FlutterPlatformViewFactory {
     }
     
     public func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        return VideoPlayer(frame: frame, viewId: viewId, messenger: messenger, args: args)
+        
+        self.videoPlayer = VideoPlayer(frame: frame, viewId: viewId, messenger: messenger, args: args)
+        
+        self.registrar?.addApplicationDelegate(self.videoPlayer!)
+        
+        return self.videoPlayer!
     }
     
     public func createArgsCodec() -> FlutterMessageCodec & NSObjectProtocol {
         return FlutterJSONMessageCodec()
     }
+    
+    public func applicationDidEnterBackground() {}
+    
+    public func applicationWillEnterForeground() {}
 }
 
-class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
+class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatformView {
+    
+    static func register(with registrar: FlutterPluginRegistrar) { }
     
     /* view specific properties */
     var frame:CGRect
@@ -41,7 +62,6 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
     
     /* player properties */
     var player: FluterAVPlayer?
-    var playerLayer:AVPlayerLayer?
     var playerViewController:AVPlayerViewController?
     
     /* player metadata */
@@ -49,7 +69,9 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
     var autoPlay:Bool = false
     var title:String = ""
     var subtitle:String = ""
+    var isLiveStream:Bool = false
     
+    private var isPlaying = false
     private var timeObserverToken:Any?
     
     let requiredAssetKeys = [
@@ -89,15 +111,54 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         self.autoPlay = parsedData["autoPlay"] as! Bool
         self.title = parsedData["title"] as! String
         self.subtitle = parsedData["subtitle"] as! String
+        self.isLiveStream = parsedData["isLiveStream"] as! Bool
     }
     
-    /* set Flutter messenger */
+    /* set Flutter event channel */
     private func setupEventChannel(viewId: Int64, messenger:FlutterBinaryMessenger, instance:VideoPlayer) {
         
         /* register for Flutter event channel */
         instance.eventChannel = FlutterEventChannel(name: "tv.mta/NativeVideoPlayerEventChannel_" + String(viewId), binaryMessenger: messenger, codec: FlutterJSONMethodCodec.sharedInstance())
         
         instance.eventChannel!.setStreamHandler(instance)
+    }
+    
+    /* set Flutter method channel */
+    private func setupMethodChannel(viewId: Int64, messenger:FlutterBinaryMessenger) {
+        
+        let nativeMethodsChannel = FlutterMethodChannel(name: "tv.mta/NativeVideoPlayerMethodChannel_" + String(viewId), binaryMessenger: messenger);
+        
+        nativeMethodsChannel.setMethodCallHandler({
+            (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            
+            if ("onMediaChanged" == call.method) {
+                
+                /* data as JSON */
+                let parsedData = call.arguments as! [String: Any]
+
+                /* set incoming player properties */
+                self.url = parsedData["url"] as! String
+                self.autoPlay = parsedData["autoPlay"] as! Bool
+                self.title = parsedData["title"] as! String
+                self.subtitle = parsedData["subtitle"] as! String
+                self.isLiveStream = parsedData["isLiveStream"] as! Bool
+                
+                self.onMediaChanged()
+                
+                result(true)
+            }
+            
+            /* dispose */
+            else if ("dispose" == call.method) {
+                
+                self.dispose()
+                
+                result(true)
+            }
+                
+            /* not implemented yet */
+            else { result(FlutterMethodNotImplemented) }
+        })
     }
     
     /* create player view */
@@ -107,6 +168,7 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
             
             do {
                 let audioSession = AVAudioSession.sharedInstance()
+                try audioSession.setCategory(AVAudioSessionCategoryPlayback, with: AVAudioSession.CategoryOptions.allowBluetooth)
                 try audioSession.setActive(true)
             } catch _ { }
             
@@ -127,6 +189,10 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
             /* setup player */
             self.player = FluterAVPlayer(playerItem: playerItem)
             
+            if #available(iOS 12.0, *) {
+                self.player?.preventsDisplaySleepDuringVideoPlayback = true
+            }
+            
             /* Add observer for AVPlayer status and AVPlayerItem status */
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
@@ -140,14 +206,18 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
             
             /* setup player view controller */
             self.playerViewController = AVPlayerViewController()
+            if #available(iOS 10.0, *) {
+                self.playerViewController?.updatesNowPlayingInfoCenter = false
+            }
+            
             self.playerViewController?.player = self.player
             self.playerViewController?.view.frame = self.frame
             
             /* setup lock screen controls */
             setupRemoteTransportControls()
-            setupNowPlaying()
+            setupNowPlayingInfoPanel()
             
-            /* start playback if set to auto play */
+            /* start playback if svet to auto play */
             if (self.autoPlay) {
                 play()
             }
@@ -164,8 +234,36 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         return UIView()
     }
     
+    private func onMediaChanged() {
+        if let p = self.player {
+            
+            if let videoURL = URL(string: self.url) {
+                
+                /* create the new asset to play */
+                let asset = AVAsset(url: videoURL)
+                
+                let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: requiredAssetKeys)
+                
+                p.replaceCurrentItem(with: playerItem)
+                
+                /* setup lock screen controls */
+                setupRemoteTransportControls()
+                setupNowPlayingInfoPanel()
+            }
+        }
+    }
+    
     @objc func onComplete(_ notification: Notification) {
+        
+        pause()
+        
+        isPlaying = false
+        
         self.flutterEventSink?(["name":"onComplete"])
+        
+        self.player?.seek(to: CMTime(seconds: 0, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+        
+        updateInfoPanelOnComplete()
     }
     
     /* observe AVPlayer.status, AVPlayerItem.status & AVPlayer.timeControlStatus */
@@ -184,7 +282,11 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
             }
             
             if newStatus == .failed {
+                
+                isPlaying = false
+                
                 self.flutterEventSink?(["name":"onError", "error":(String(describing: self.player?.currentItem?.error))])
+            
             }
         }
         
@@ -199,18 +301,19 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
                 switch (p.timeControlStatus) {
                 
                 case AVPlayerTimeControlStatus.paused:
+                    isPlaying = false
                     self.flutterEventSink?(["name":"onPause"])
                     break
                 
                 case AVPlayerTimeControlStatus.playing:
+                    isPlaying = true
                     self.flutterEventSink?(["name":"onPlay"])
                     break
                 
                 case .waitingToPlayAtSpecifiedRate: break
                 }
-            } else {
-                // Fallback on earlier versions
             }
+            
         } else {
             super.observeValue(forKeyPath: keyPath,
                                of: object,
@@ -233,6 +336,8 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         
         errorMessage.removeLast()
         
+        isPlaying = false
+        
         self.flutterEventSink?(["name":"onError", "error":String(data: errorMessage, encoding: .utf8)])
     }
 
@@ -240,6 +345,7 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         guard let error = notification.userInfo!["AVPlayerItemFailedToPlayToEndTimeErrorKey"] else {
             return
         }
+        isPlaying = false
         self.flutterEventSink?(["name":"onError", "error":error])
     }
     
@@ -266,58 +372,83 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         }
     }
     
-    private func setupNowPlaying() {
+    private func setupNowPlayingInfoPanel() {
         
         nowPlayingInfo[MPMediaItemPropertyTitle] = self.title
         
         nowPlayingInfo[MPMediaItemPropertyArtist] = self.subtitle
+        
+        if #available(iOS 10.0, *) {
+            nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = self.isLiveStream
+        }
 
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player?.currentTime().seconds
 
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player?.currentItem?.asset.duration.seconds
 
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
-    private func play() {
+    private func updateInfoPanelOnPause() {
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.player?.currentTime())!)
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnPlay() {
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(((self.player?.currentTime())!))
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnComplete() {
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnTime() {
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.player?.currentTime())!)
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+    }
+    
+    @objc private func play() {
+        
         player?.play()
+        
+        updateInfoPanelOnPlay()
     }
     
     private func pause() {
+        
         player?.pause()
-    }
-    
-    private func seekTo(second:Double) {
         
-        let beforeSeek = player?.currentTime().seconds
-        
-        player?.seek(to: CMTime(seconds: second, preferredTimescale: CMTimeScale(NSEC_PER_SEC))) { (isCompleted) in
-            
-            self.flutterEventSink?(["name":"onSeek", "position":beforeSeek ?? 0, "offset":second])
-        }
-    }
-    
-    private func teardown() {
-        
-        pause()
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        
-        if let timeObserver = timeObserverToken {
-            player?.removeTimeObserver(timeObserver)
-            timeObserverToken = nil
-        }
-        
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setActive(false)
-        } catch _ { }
+        updateInfoPanelOnPause()
     }
     
     private func onTimeInterval(time:CMTime) {
-        self.flutterEventSink?(["name":"onTime", "time":self.player?.currentTime().seconds ?? 0])
+        
+        if (isPlaying) {
+            
+            self.flutterEventSink?(["name":"onTime", "time":time.seconds])
+            
+            updateInfoPanelOnTime()
+        }
     }
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -333,6 +464,26 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
     }
     
     public func dispose() {
+        
+        /* stop playback */
+        pause()
+        
+        /* clear lock screen metadata */
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        
+        /* remove observers */
+        if let timeObserver = timeObserverToken {
+            player?.removeTimeObserver(timeObserver)
+            timeObserverToken = nil
+        }
+        
+        /* stop audio session */
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setActive(false)
+        } catch _ { }
+        
+        /* clear player reference */
         if self.player != nil {
             self.player?.pause()
             self.player = nil
@@ -342,26 +493,18 @@ class VideoPlayer: NSObject, FlutterStreamHandler, FlutterPlatformView {
         self.player?.flutterEventSink = nil
         self.eventChannel?.setStreamHandler(nil)
     }
-}
-
-class FluterAVPlayer: AVPlayer {
-    var flutterEventSink:FlutterEventSink?
     
-    override func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime, completionHandler: @escaping (Bool) -> Void) {
-        
-        let position = self.currentTime().seconds
-        
-        super.seek(to: time, toleranceBefore: toleranceAfter, toleranceAfter: toleranceAfter, completionHandler: { (isCompleted) in
-            
-            if (isCompleted) {
-                
-                let offset = time.seconds
-                
-                self.flutterEventSink?(["name":"onSeek", "position":position, "offset":offset])
-            }
-            
-            /* call super completion handler */
-            completionHandler(isCompleted)
-        })
+    /**
+     detach player UI to keep audio playing in background
+     */
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        self.playerViewController?.player = nil
+    }
+    
+    /**
+     reattach player UI as app is in foreground now
+     */
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        self.playerViewController?.player = self.player
     }
 }

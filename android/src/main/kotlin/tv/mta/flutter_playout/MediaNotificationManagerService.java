@@ -1,23 +1,27 @@
-package tv.mta.flutter_playout.audio;
+package tv.mta.flutter_playout;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import org.jetbrains.annotations.Nullable;
+import androidx.annotation.Nullable;
 
-public class PlayerNotificationManagerService extends Service {
+/**
+ * This service is used to clear player notifications if app is
+ * killed from recent apps list
+ */
+public class MediaNotificationManagerService extends Service {
 
     /**
      * The binder used by clients to access this instance.
      */
-    private final Binder mBinder = new PlayerNotificationManagerServiceBinder();
+    private final Binder mBinder = new MediaNotificationManagerServiceBinder();
 
     /**
-     * The MediaSession managed by this service.
+     * The player managed by this service.
      */
-    private AudioServiceBinder mMediaSession;
+    private FlutterAVPlayer avPlayer;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -35,7 +39,7 @@ public class PlayerNotificationManagerService extends Service {
 
         try {
 
-            mMediaSession.stopAudio();
+            avPlayer.onDestroy();
 
         } catch (Exception e) { /* ignore */ }
     }
@@ -45,7 +49,7 @@ public class PlayerNotificationManagerService extends Service {
 
         try {
 
-            mMediaSession.stopAudio();
+            avPlayer.onDestroy();
 
             stopSelf();
 
@@ -58,14 +62,23 @@ public class PlayerNotificationManagerService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
 
-        mMediaSession.stopAudio();
+        avPlayer.onDestroy();
 
         stopSelf();
     }
 
-    public void setActiveSession(AudioServiceBinder session) {
+    /**
+     * Used to set a player to control the MediaSession for.
+     * @param player the player that should be controlled by this service.
+     */
+    public void setActivePlayer(FlutterAVPlayer player) {
 
-        mMediaSession = session;
+        if (avPlayer != null) {
+
+            avPlayer.onDestroy();
+        }
+
+        avPlayer = player;
     }
 
     /**
@@ -73,11 +86,11 @@ public class PlayerNotificationManagerService extends Service {
      * Because we know this service always runs in the same process
      * as its clients, we don't need to deal with IPC.
      */
-    public class PlayerNotificationManagerServiceBinder extends Binder {
+    public class MediaNotificationManagerServiceBinder extends Binder {
 
-        PlayerNotificationManagerService getService() {
+        public MediaNotificationManagerService getService() {
 
-            return PlayerNotificationManagerService.this;
+            return MediaNotificationManagerService.this;
         }
     }
 }

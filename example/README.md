@@ -119,9 +119,8 @@ class PlayoutExample extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-
-import 'package:flutter_playout/video.dart';
 import 'package:flutter_playout/player_observer.dart';
+import 'package:flutter_playout/video.dart';
 
 class VideoPlayout extends StatelessWidget with PlayerObserver {
   @override
@@ -133,14 +132,13 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
           autoPlay: true,
           title: "Reaching The Corners Of The Earth",
           subtitle: "MTA International",
-          url: "https://your_video_stream.com/stream_test.m3u8",
+          url: "https://your_video_stream.com/stream_test.m3y8",
           onViewCreated: _onViewCreated,
         ),
       ),
     );
   }
 
-  // Start listening for player events
   void _onViewCreated(int viewId) {
     listenForVideoPlayerEvents(viewId);
   }

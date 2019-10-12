@@ -47,12 +47,12 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
                       
                       if let subtitle = arguments["subtitle"] as? String {
                           
-                          if let duration = arguments["duration"] as? Double {
-                              
-                              if let position = arguments["position"] as? Double {
-                                  
-                                  setup(title: title, subtitle: subtitle, position: position, duration: duration, url: audioURL)
-                              }
+                          if let position = arguments["position"] as? Double {
+                            
+                            if let isLiveStream = arguments["isLiveStream"] as? Bool {
+                                
+                                setup(title: title, subtitle: subtitle, position: position, url: audioURL, isLiveStream: isLiveStream)
+                            }
                           }
                       }
                   }
@@ -85,7 +85,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
               
               if let seekToSecond = arguments["second"] as? Double {
                   
-                  seekTo(second: seekToSecond)
+                  seekTo(seconds: seekToSecond)
               }
           }
           
@@ -110,10 +110,11 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     
     private var nowPlayingInfo = [String : Any]()
     
-    private func setup(title:String, subtitle:String, position:Double, duration:Double, url: String?) {
+    private func setup(title:String, subtitle:String, position:Double, url: String?, isLiveStream:Bool) {
 
         do {
             let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(AVAudioSessionCategoryPlayback, with: AVAudioSession.CategoryOptions.allowBluetooth)
             try audioSession.setActive(true)
         } catch _ { }
         
@@ -143,16 +144,23 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
             
             setupRemoteTransportControls()
             
-            setupNowPlaying(title: title, subtitle: subtitle, duration: duration)
+            setupNowPlayingInfoPanel(title: title, subtitle: subtitle, isLiveStream: isLiveStream)
             
-            seekTo(second: position / 1000)
+            seekTo(seconds: position / 1000)
             
             audioPlayer.play()
         }
     }
     
     @objc func onComplete(_ notification: Notification) {
+        
+        pause()
+        
         self.flutterEventSink?(["name":"onComplete"])
+        
+        seekTo(seconds: 0.0)
+        
+        updateInfoPanelOnComplete()
     }
     
     /* Observe If AVPlayerItem.status Changed to Fail */
@@ -247,17 +255,21 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         }
     }
     
-    private func setupNowPlaying(title:String, subtitle:String, duration:Double) {
+    private func setupNowPlayingInfoPanel(title:String, subtitle:String, isLiveStream:Bool) {
         
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         
         nowPlayingInfo[MPMediaItemPropertyArtist] = subtitle
+        
+        if #available(iOS 10.0, *) {
+            nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = isLiveStream
+        }
 
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = audioPlayer.currentTime().seconds
 
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = duration / 1000
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = audioPlayer.currentItem?.asset.duration.seconds
 
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
@@ -266,39 +278,30 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         
         audioPlayer.play()
         
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.audioPlayer.currentTime()))
-        
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+        updateInfoPanelOnPlay()
     }
     
     private func pause() {
         
         audioPlayer.pause()
         
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(audioPlayer.currentTime())
-        
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        updateInfoPanelOnPause()
     }
     
-    private func seekTo(second:Double) {
+    private func seekTo(seconds:Double) {
         
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(audioPlayer.currentTime())
+        updateInfoPanelOnPause()
         
-        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+        let position = self.audioPlayer.currentTime().seconds
         
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-        
-        audioPlayer.seek(to: CMTime(seconds: second, preferredTimescale: CMTimeScale(NSEC_PER_SEC))) { (isCompleted) in
+        audioPlayer.seek(to: CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))) { (isCompleted) in
             
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(self.audioPlayer.currentTime())
+            if (isCompleted) {
+                
+                self.flutterEventSink?(["name":"onSeek", "position":position, "offset":seconds])
+            }
             
-            self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
-            
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+            self.updateInfoPanelOnPlay()
         }
     }
     
@@ -320,13 +323,10 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     }
     
     private func onTimeInterval(time:CMTime) {
+        
         self.flutterEventSink?(["name":"onTime", "time":self.audioPlayer.currentTime().seconds])
         
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(self.audioPlayer.currentTime())
-        
-        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
-        
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+        updateInfoPanelOnTime()
     }
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -337,5 +337,41 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
         flutterEventSink = nil
         return nil
+    }
+    
+    private func updateInfoPanelOnPause() {
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.audioPlayer.currentTime()))
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnPlay() {
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds(((self.audioPlayer.currentTime())))
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnComplete() {
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func updateInfoPanelOnTime() {
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = CMTimeGetSeconds((self.audioPlayer.currentTime()))
+        
+        self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
     }
 }

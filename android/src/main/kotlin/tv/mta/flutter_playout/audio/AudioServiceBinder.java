@@ -1,5 +1,6 @@
 package tv.mta.flutter_playout.audio;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -22,11 +23,12 @@ import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 
+import tv.mta.flutter_playout.FlutterAVPlayer;
 import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
 
-public class AudioServiceBinder extends Binder implements MediaPlayer.OnPreparedListener {
+public class AudioServiceBinder extends Binder implements FlutterAVPlayer, MediaPlayer.OnPreparedListener {
 
     public static AudioServiceBinder currentService;
 
@@ -82,6 +84,8 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
 
     private Context context;
 
+    private Activity activity;
+
     public MediaPlayer getAudioPlayer() {
         return audioPlayer;
     }
@@ -128,6 +132,14 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
 
     public void setContext(Context context) {
         this.context = context;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 
     public void setAudioProgressUpdateHandler(Handler audioProgressUpdateHandler) {
@@ -184,16 +196,14 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
             updatePlaybackState(PlayerState.COMPLETE);
         }
 
-        destroyAudioPlayer();
+        onDestroy();
+    }
 
-        try {
+    private void cleanPlayerNotification() {
+        NotificationManager notificationManager = (NotificationManager)
+                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-            NotificationManager notificationManager = (NotificationManager)
-                    context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-            notificationManager.cancel(NOTIFICATION_ID);
-
-        } catch (Exception e) { /* ignore */ }
+        notificationManager.cancel(NOTIFICATION_ID);
     }
 
     private void initAudioPlayer() {
@@ -226,7 +236,8 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
         } catch (IOException ex) { mReceivedError = true; }
     }
 
-    private void destroyAudioPlayer() {
+    @Override
+    public void onDestroy() {
 
         isBound = false;
 
@@ -243,6 +254,12 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
 
             audioPlayer = null;
         }
+
+        try {
+
+            cleanPlayerNotification();
+
+        } catch (Exception e) { /* ignore */ }
     }
 
     public int getCurrentAudioPosition() {
@@ -421,7 +438,7 @@ public class AudioServiceBinder extends Binder implements MediaPlayer.OnPrepared
         }
 
         NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
-                context, mMediaSessionCompat, mNotificationChannelId);
+                activity, context, mMediaSessionCompat, mNotificationChannelId);
 
         notificationBuilder = addActions(notificationBuilder, capabilities);
 

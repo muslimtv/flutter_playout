@@ -2,27 +2,42 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+/// Use with Video or Audio widget to get player notifications such as
+/// [onPlay], [onPause] etc. See example on how to use.
 mixin PlayerObserver {
   Future<void> listenForVideoPlayerEvents(int viewId) async {
     EventChannel eventChannel = EventChannel(
         "tv.mta/NativeVideoPlayerEventChannel_$viewId", JSONMethodCodec());
-    eventChannel.receiveBroadcastStream().listen(processEvent);
+    eventChannel.receiveBroadcastStream().listen(_processEvent);
   }
 
   Future<void> listenForAudioPlayerEvents() async {
     EventChannel eventChannel =
         EventChannel("tv.mta/NativeAudioEventChannel", JSONMethodCodec());
-    eventChannel.receiveBroadcastStream().listen(processEvent);
+    eventChannel.receiveBroadcastStream().listen(_processEvent);
   }
 
+  /// Override this method to get notifications when media is paused.
   void onPause() {/* user implementation */}
+
+  /// Override this method to get notifications when media is played.
   void onPlay() {/* user implementation */}
+
+  /// Override this method to get notifications when media has finished playing.
   void onComplete() {/* user implementation */}
+
+  /// Override this method to get update when playhead moves. This method
+  /// fires every second with [position] as seconds.
   void onTime(int position) {/* user implementation */}
+
+  /// Override this method to get notifications when a seek operation has
+  /// finished. This will occur when user finishes scrubbing media.
+  /// [position] is position in seconds before seek started.
+  /// [offset] is seconds after seek processed.
   void onSeek(int position, double offset) {/* user implementation */}
   void onError(String error) {/* user implementation */}
 
-  void processEvent(dynamic event) async {
+  void _processEvent(dynamic event) async {
     String eventName = event["name"];
 
     switch (eventName) {

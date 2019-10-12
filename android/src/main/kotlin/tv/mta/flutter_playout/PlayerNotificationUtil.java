@@ -1,8 +1,10 @@
 package tv.mta.flutter_playout;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -19,7 +21,10 @@ public class PlayerNotificationUtil  {
      * @param mediaSession
      * @return
      */
-    public static NotificationCompat.Builder from(Context context, MediaSessionCompat mediaSession, String notificationChannelId) {
+    public static NotificationCompat.Builder from(Activity activity,
+                                                  Context context,
+                                                  MediaSessionCompat mediaSession,
+                                                  String notificationChannelId) {
 
         MediaControllerCompat controller = mediaSession.getController();
 
@@ -34,7 +39,6 @@ public class PlayerNotificationUtil  {
 
         builder.setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
-                .setSubText(description.getDescription())
                 .setLargeIcon(description.getIconBitmap())
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSession.getSessionToken()))
@@ -42,7 +46,7 @@ public class PlayerNotificationUtil  {
                 .setSmallIcon(smallIcon)
                 .setDeleteIntent(getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP));
 
-        Intent intent = new Intent(context, context.getClass());
+        Intent intent = new Intent(context, activity.getClass());
 
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
