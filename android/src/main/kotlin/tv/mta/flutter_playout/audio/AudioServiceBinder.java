@@ -164,6 +164,14 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
         if (audioPlayer != null && mMediaSessionCompat != null && mMediaSessionCompat.isActive()) {
 
             updatePlaybackState(PlayerState.PLAYING);
+
+            // Create update audio player state message.
+            Message updateAudioProgressMsg = new Message();
+
+            updateAudioProgressMsg.what = UPDATE_PLAYER_STATE_TO_PLAY;
+
+            // Send the message to caller activity's update audio Handler object.
+            audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
         }
 
         currentService = this;
@@ -181,6 +189,14 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
             audioPlayer.pause();
 
             updatePlaybackState(PlayerState.PAUSED);
+
+            // Create update audio player state message.
+            Message updateAudioProgressMsg = new Message();
+
+            updateAudioProgressMsg.what = UPDATE_PLAYER_STATE_TO_PAUSE;
+
+            // Send the message to caller activity's update audio Handler object.
+            audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
         }
     }
 
@@ -308,19 +324,30 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
                 while (isBound) {
 
-                    // Create update audio progress message.
-                    Message updateAudioProgressMsg = new Message();
+                    if (audioPlayer.isPlaying()) {
 
-                    updateAudioProgressMsg.what = UPDATE_AUDIO_PROGRESS_BAR;
+                        // Create update audio progress message.
+                        Message updateAudioProgressMsg = new Message();
 
-                    // Send the message to caller activity's update audio progressbar Handler object.
-                    audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
+                        updateAudioProgressMsg.what = UPDATE_AUDIO_PROGRESS_BAR;
 
-                    try {
+                        // Send the message to caller activity's update audio progressbar Handler object.
+                        audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
 
-                        Thread.sleep(1000);
+                        try {
 
-                    } catch (InterruptedException ex) { /* ignore */ }
+                            Thread.sleep(1000);
+
+                        } catch (InterruptedException ex) { /* ignore */ }
+
+                    } else {
+
+                        try {
+
+                            Thread.sleep(100);
+
+                        } catch (InterruptedException ex) { /* ignore */ }
+                    }
                 }
             }
         };

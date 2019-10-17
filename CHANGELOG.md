@@ -1,3 +1,7 @@
+## 1.0.6 [October 17, 2019]
+
+* Fixed an issue with audio player where onPlay & onPause were not being fired
+
 ## 1.0.5 [October 12, 2019]
 
 * Fixed an issue causing iOS plugin to not respond to dispose
