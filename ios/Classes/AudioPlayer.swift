@@ -112,6 +112,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     
     private var mediaDuration = 0.0
     
+    private var mediaURL = ""
+    
     private func setup(title:String, subtitle:String, position:Double, url: String?, isLiveStream:Bool) {
 
         do {
@@ -124,31 +126,36 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         
         if let audioURL = url {
             
-            audioPlayer = AVPlayer(url: URL(string: audioURL)!)
-            
-            let center = NotificationCenter.default
-            
-            center.addObserver(self, selector: #selector(onComplete(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.audioPlayer.currentItem)
-            center.addObserver(self, selector:#selector(onAVPlayerNewErrorLogEntry(_:)), name: .AVPlayerItemNewErrorLogEntry, object: audioPlayer.currentItem)
-            center.addObserver(self, selector:#selector(onAVPlayerFailedToPlayToEndTime(_:)), name: .AVPlayerItemFailedToPlayToEndTime, object: audioPlayer.currentItem)
-            
-            /* Add observer for AVPlayer status and AVPlayerItem status */
-            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
-            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
-            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
-            
-            let interval = CMTime(seconds: 1.0,
-            preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-            
-            timeObserverToken = audioPlayer.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
-                time in self.onTimeInterval(time: time)
+            if (audioURL != mediaURL) {
+                
+                audioPlayer = AVPlayer(url: URL(string: audioURL)!)
+                
+                let center = NotificationCenter.default
+                
+                center.addObserver(self, selector: #selector(onComplete(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.audioPlayer.currentItem)
+                center.addObserver(self, selector:#selector(onAVPlayerNewErrorLogEntry(_:)), name: .AVPlayerItemNewErrorLogEntry, object: audioPlayer.currentItem)
+                center.addObserver(self, selector:#selector(onAVPlayerFailedToPlayToEndTime(_:)), name: .AVPlayerItemFailedToPlayToEndTime, object: audioPlayer.currentItem)
+                
+                /* Add observer for AVPlayer status and AVPlayerItem status */
+                self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
+                self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
+                self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+                
+                let interval = CMTime(seconds: 1.0,
+                preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+                
+                timeObserverToken = audioPlayer.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
+                    time in self.onTimeInterval(time: time)
+                }
+                
+                setupRemoteTransportControls()
+                
+                setupNowPlayingInfoPanel(title: title, subtitle: subtitle, isLiveStream: isLiveStream)
+                
+                seekTo(seconds: position / 1000)
             }
             
-            setupRemoteTransportControls()
-            
-            setupNowPlayingInfoPanel(title: title, subtitle: subtitle, isLiveStream: isLiveStream)
-            
-            seekTo(seconds: position / 1000)
+            mediaURL = audioURL
             
             audioPlayer.play()
         }

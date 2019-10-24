@@ -231,23 +231,44 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
     void play(Object arguments) {
 
+        java.util.HashMap<String, Object> args = (java.util.HashMap<String, Object>) arguments;
+
+        this.audioURL = (String) args.get("url");
+
+        this.title = (String) args.get("title");
+
+        this.subtitle = (String) args.get("subtitle");
+
+        try {
+
+            this.startPositionInMills = (int) args.get("position");
+
+        } catch (Exception e) { /* ignore */ }
+
         if (audioServiceBinder != null) {
+
+            boolean mediaChanged = !this.audioURL.equals(audioServiceBinder.getAudioFileUrl());
+
+            if (mediaChanged) {
+
+                try {
+
+                    audioServiceBinder.resetPlayer();
+
+                } catch (Exception e) { /* ignore */}
+
+                audioServiceBinder.setMediaChanging(true);
+            }
+
+            audioServiceBinder.setAudioFileUrl(this.audioURL);
+
+            audioServiceBinder.setTitle(this.title);
+
+            audioServiceBinder.setSubtitle(this.subtitle);
 
             audioServiceBinder.startAudio(startPositionInMills);
 
         } else {
-
-            java.util.HashMap<String, Object> args = (java.util.HashMap<String, Object>) arguments;
-
-            this.audioURL = (String) args.get("url");
-
-            this.title = (String) args.get("title");
-
-            this.subtitle = (String) args.get("subtitle");
-
-            try {
-                this.startPositionInMills = (int) args.get("position");
-            } catch (Exception e) { /* ignore */ }
 
             bindAudioService();
         }
@@ -338,19 +359,24 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
         try {
 
-            int newDuration = audioServiceBinder.getAudioPlayer().getDuration();
+            if (audioServiceBinder != null &&
+                audioServiceBinder.getAudioPlayer() != null &&
+                !audioServiceBinder.isMediaChanging()) {
 
-            if (newDuration != mediaDuration) {
+                int newDuration = audioServiceBinder.getAudioPlayer().getDuration();
 
-                mediaDuration = newDuration;
+                if (newDuration != mediaDuration) {
 
-                JSONObject message = new JSONObject();
+                    mediaDuration = newDuration;
 
-                message.put("name", "onDuration");
+                    JSONObject message = new JSONObject();
 
-                message.put("duration", mediaDuration);
+                    message.put("name", "onDuration");
 
-                eventSink.success(message);
+                    message.put("duration", mediaDuration);
+
+                    eventSink.success(message);
+                }
             }
 
         } catch (Exception e) { /* ignore */ System.out.println(e); }

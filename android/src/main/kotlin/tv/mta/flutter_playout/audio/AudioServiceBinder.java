@@ -81,6 +81,8 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
     boolean isBound = true;
 
+    boolean isMediaChanging = false;
+
     /**
      * The underlying {@link MediaSessionCompat}.
      */
@@ -146,6 +148,14 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
         this.activity = activity;
     }
 
+    public boolean isMediaChanging() {
+        return isMediaChanging;
+    }
+
+    public void setMediaChanging(boolean mediaChanging) {
+        isMediaChanging = mediaChanging;
+    }
+
     public void setAudioProgressUpdateHandler(Handler audioProgressUpdateHandler) {
         this.audioProgressUpdateHandler = audioProgressUpdateHandler;
     }
@@ -188,9 +198,12 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
     public void pauseAudio() {
 
-        if(audioPlayer != null) {
+        if (audioPlayer != null) {
 
-            audioPlayer.pause();
+            if (audioPlayer.isPlaying()) {
+
+                audioPlayer.pause();
+            }
 
             updatePlaybackState(PlayerState.PAUSED);
 
@@ -258,30 +271,35 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
         } catch (IOException ex) { mReceivedError = true; }
     }
 
-    @Override
-    public void onDestroy() {
-
-        isBound = false;
-
-        if (audioPlayer != null) {
-
-            if (audioPlayer.isPlaying()) {
-
-                audioPlayer.stop();
-            }
-
-            audioPlayer.reset();
-
-            audioPlayer.release();
-
-            audioPlayer = null;
-        }
+    public void resetPlayer() {
 
         try {
 
             cleanPlayerNotification();
 
+            if (audioPlayer != null) {
+
+                if (audioPlayer.isPlaying()) {
+
+                    audioPlayer.stop();
+                }
+
+                audioPlayer.reset();
+
+                audioPlayer.release();
+
+                audioPlayer = null;
+            }
+
         } catch (Exception e) { /* ignore */ }
+    }
+
+    @Override
+    public void onDestroy() {
+
+        isBound = false;
+
+        resetPlayer();
     }
 
     public int getCurrentAudioPosition() {
@@ -297,6 +315,8 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+
+        setMediaChanging(false);
 
         if (startPositionInMills > 0) {
             mp.seekTo(startPositionInMills);
@@ -330,7 +350,7 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
                 while (isBound) {
 
-                    if (audioPlayer.isPlaying()) {
+                    if (audioPlayer != null && audioPlayer.isPlaying()) {
 
                         // Create update audio progress message.
                         Message updateAudioProgressMsg = new Message();

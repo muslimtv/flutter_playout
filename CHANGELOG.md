@@ -1,3 +1,7 @@
+## 1.0.8 [October 24, 2019]
+
+* fixed an issue where audio player was not playing new media on url change
+
 ## 1.0.7 [October 24, 2019]
 
 * Added onDuration callback & updated example to reflect the change
