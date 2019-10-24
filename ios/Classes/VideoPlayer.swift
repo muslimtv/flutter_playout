@@ -71,6 +71,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var subtitle:String = ""
     var isLiveStream:Bool = false
     
+    private var mediaDuration = 0.0
+    
     private var isPlaying = false
     private var timeObserverToken:Any?
     
@@ -436,6 +438,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         player?.play()
         
         updateInfoPanelOnPlay()
+        
+        onDurationChange()
     }
     
     private func pause() {
@@ -443,6 +447,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         player?.pause()
         
         updateInfoPanelOnPause()
+        
+        onDurationChange()
     }
     
     private func onTimeInterval(time:CMTime) {
@@ -453,6 +459,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             updateInfoPanelOnTime()
         }
+        
+        onDurationChange()
     }
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -465,6 +473,28 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         flutterEventSink = nil
         self.player?.flutterEventSink = nil
         return nil
+    }
+    
+    private func onDurationChange() {
+        
+        guard let player = self.player else { return }
+        
+        guard let item = player.currentItem else { return }
+        
+        let newDuration = item.asset.duration.seconds * 1000
+        
+        if (newDuration.isNaN) {
+            
+            self.mediaDuration = newDuration
+            
+            self.flutterEventSink?(["name":"onDuration", "duration":-1])
+            
+        } else if (newDuration != mediaDuration) {
+            
+            self.mediaDuration = newDuration
+            
+            self.flutterEventSink?(["name":"onDuration", "duration":self.mediaDuration])
+        }
     }
     
     public func dispose() {

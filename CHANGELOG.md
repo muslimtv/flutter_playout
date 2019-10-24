@@ -1,3 +1,8 @@
+## 1.0.7 [October 24, 2019]
+
+* Added onDuration callback & updated example to reflect the change
+* Implemented onComplete for Android audio player
+
 ## 1.0.6 [October 17, 2019]
 
 * Fixed an issue with audio player where onPlay & onPause were not being fired

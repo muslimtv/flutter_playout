@@ -42,6 +42,8 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
     private int startPositionInMills;
 
+    private int mediaDuration = 0;
+
     public static void registerWith(PluginRegistry.Registrar registrar) {
 
         final AudioPlayer plugin = new AudioPlayer(registrar.messenger(), registrar.activeContext());
@@ -82,13 +84,21 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
                     try {
 
-                        JSONObject message = new JSONObject();
+                        int position = service.audioServiceBinder.getCurrentAudioPosition();
 
-                        message.put("name", "onTime");
+                        int duration = service.audioServiceBinder.getAudioPlayer().getDuration();
 
-                        message.put("time", service.audioServiceBinder.getCurrentAudioPosition() / 1000);
+                        if (position <= duration) {
 
-                        service.eventSink.success(message);
+                            JSONObject message = new JSONObject();
+
+                            message.put("name", "onTime");
+
+                            message.put("time",
+                                    service.audioServiceBinder.getCurrentAudioPosition() / 1000);
+
+                            service.eventSink.success(message);
+                        }
 
                     } catch (Exception e) { /* ignore */ }
 
@@ -99,6 +109,14 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
                 } else if (msg.what == service.audioServiceBinder.UPDATE_PLAYER_STATE_TO_PLAY) {
 
                     service.notifyDartOnPlay();
+
+                } else if (msg.what == service.audioServiceBinder.UPDATE_PLAYER_STATE_TO_COMPLETE) {
+
+                    service.notifyDartOnComplete();
+
+                } else if (msg.what == service.audioServiceBinder.UPDATE_AUDIO_DURATION) {
+
+                    service.onDuration();
                 }
             }
         }
@@ -273,6 +291,19 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
         } catch (Exception e) { /* ignore */ }
     }
 
+    void notifyDartOnComplete() {
+
+        try {
+
+            JSONObject message = new JSONObject();
+
+            message.put("name", "onComplete");
+
+            eventSink.success(message);
+
+        } catch (Exception e) { /* ignore */ }
+    }
+
     void stop() {
 
         if (audioServiceBinder != null) {
@@ -301,6 +332,28 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
             }
 
         } catch (Exception e) { /* ignore */ }
+    }
+
+    void onDuration() {
+
+        try {
+
+            int newDuration = audioServiceBinder.getAudioPlayer().getDuration();
+
+            if (newDuration != mediaDuration) {
+
+                mediaDuration = newDuration;
+
+                JSONObject message = new JSONObject();
+
+                message.put("name", "onDuration");
+
+                message.put("duration", mediaDuration);
+
+                eventSink.success(message);
+            }
+
+        } catch (Exception e) { /* ignore */ System.out.println(e); }
     }
 
     /**

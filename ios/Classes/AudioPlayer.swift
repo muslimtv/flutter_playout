@@ -110,6 +110,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     
     private var nowPlayingInfo = [String : Any]()
     
+    private var mediaDuration = 0.0
+    
     private func setup(title:String, subtitle:String, position:Double, url: String?, isLiveStream:Bool) {
 
         do {
@@ -281,6 +283,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         audioPlayer.play()
         
         updateInfoPanelOnPlay()
+        
+        onDurationChange()
     }
     
     private func pause() {
@@ -288,6 +292,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         audioPlayer.pause()
         
         updateInfoPanelOnPause()
+        
+        onDurationChange()
     }
     
     private func seekTo(seconds:Double) {
@@ -329,6 +335,8 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         self.flutterEventSink?(["name":"onTime", "time":self.audioPlayer.currentTime().seconds])
         
         updateInfoPanelOnTime()
+        
+        onDurationChange()
     }
     
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -375,5 +383,25 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         self.nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+    }
+    
+    private func onDurationChange() {
+        
+        guard let item = self.audioPlayer.currentItem else { return }
+        
+        let newDuration = item.duration.seconds * 1000
+        
+        if (newDuration.isNaN) {
+            
+            self.mediaDuration = newDuration
+            
+            self.flutterEventSink?(["name":"onDuration", "duration":-1])
+            
+        } else if (newDuration != mediaDuration) {
+            
+            self.mediaDuration = newDuration
+            
+            self.flutterEventSink?(["name":"onDuration", "duration":self.mediaDuration])
+        }
     }
 }

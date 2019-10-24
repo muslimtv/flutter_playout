@@ -106,6 +106,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean autoPlay = false;
 
+    private long mediaDuration = 0L;
+
     public PlayerLayout(@NonNull Context context, Activity activity, BinaryMessenger messenger, int id, Object arguments) {
         super(context);
 
@@ -519,6 +521,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 }
 
+                onDuration();
+
             } else if (playbackState == Player.STATE_ENDED) {
 
                 try {
@@ -561,6 +565,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 } catch (Exception e) { /* ignore */ }
 
+                onDuration();
+
                 if (isBound) {
 
                     /* keep running if player view is still active */
@@ -599,6 +605,28 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             } catch (Exception e) { /* ignore */ }
 
         } catch (Exception e) { /* ignore */ }
+    }
+
+    void onDuration() {
+
+        try {
+
+            long newDuration = mPlayerView.getDuration();
+
+            if (newDuration != mediaDuration) {
+
+                mediaDuration = newDuration;
+
+                JSONObject message = new JSONObject();
+
+                message.put("name", "onDuration");
+
+                message.put("duration", mediaDuration);
+
+                eventSink.success(message);
+            }
+
+        } catch (Exception e) { /* ignore */ System.out.println(e); }
     }
 
     @Override

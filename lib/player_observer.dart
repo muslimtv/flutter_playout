@@ -35,6 +35,13 @@ mixin PlayerObserver {
   /// [position] is position in seconds before seek started.
   /// [offset] is seconds after seek processed.
   void onSeek(int position, double offset) {/* user implementation */}
+
+  /// Override this method to get notifications when media duration is
+  /// set or changed.
+  /// [duration] is in milliseconds. Returns -1 for live stream
+  void onDuration(int duration) {/* user implementation */}
+
+  /// Override this method to get errors thrown by the player
   void onError(String error) {/* user implementation */}
 
   void _processEvent(dynamic event) async {
@@ -73,6 +80,10 @@ mixin PlayerObserver {
 
         onSeek(position, offset);
 
+        break;
+
+      case "onDuration":
+        onDuration((event["duration"]).toInt());
         break;
 
       case "onError":

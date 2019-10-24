@@ -26,37 +26,43 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
 
   @override
   void onPlay() {
-    // TODO: implement m_onPlay
+    // TODO: implement onPlay
     super.onPlay();
   }
 
   @override
   void onPause() {
-    // TODO: implement m_onPause
+    // TODO: implement onPause
     super.onPause();
   }
 
   @override
   void onComplete() {
-    // TODO: implement m_onComplete
+    // TODO: implement onComplete
     super.onComplete();
   }
 
   @override
   void onTime(int position) {
-    // TODO: implement m_onTime
+    // TODO: implement onTime
     super.onTime(position);
   }
 
   @override
   void onSeek(int position, double offset) {
-    // TODO: implement m_onSeek
+    // TODO: implement onSeek
     super.onSeek(position, offset);
   }
 
   @override
+  void onDuration(int duration) {
+    // TODO: implement onDuration
+    super.onDuration(duration);
+  }
+
+  @override
   void onError(String error) {
-    // TODO: implement m_onError
+    // TODO: implement onError
     super.onError(error);
   }
 }

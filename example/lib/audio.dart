@@ -13,9 +13,6 @@ class AudioPlayout extends StatefulWidget {
   // Audio track subtitle. this will also be displayed in lock screen controls
   final String subtitle = "Reaching The Corners Of The Earth";
 
-  // Audio duration in milliseconds
-  final int duration = 1604277;
-
   @override
   _AudioPlayout createState() => _AudioPlayout();
 }
@@ -42,9 +39,6 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   void initState() {
     super.initState();
 
-    // Set track duration
-    duration = Duration(milliseconds: widget.duration);
-
     // Init audio player with a callback to handle events
     _audioPlayer = new Audio();
 
@@ -54,56 +48,44 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   @override
   void onPlay() {
-    print("onPlay");
     setState(() {
       audioPlayerState = PlayerState.PLAYING;
     });
-    super.onPlay();
   }
 
   @override
   void onPause() {
-    print("onPause");
     setState(() {
       audioPlayerState = PlayerState.PAUSED;
     });
-    super.onPause();
   }
 
   @override
   void onComplete() {
-    print("onComplete");
-    setState(() {
-      audioPlayerState = PlayerState.PAUSED;
-    });
-    super.onComplete();
+    stop();
   }
 
   @override
   void onTime(int position) {
-    print("onTime $position");
     setState(() {
       currentPlaybackPosition = Duration(seconds: position);
     });
-
-    /* reset on playback end */
-    if (currentPlaybackPosition.inSeconds > 0 &&
-        currentPlaybackPosition.inSeconds >= duration.inSeconds) {
-      stop();
-    }
-
-    super.onTime(position);
   }
 
   @override
   void onSeek(int position, double offset) {
-    print("onSeek $position $offset");
     super.onSeek(position, offset);
   }
 
   @override
+  void onDuration(int duration) {
+    setState(() {
+      this.duration = Duration(milliseconds: duration);
+    });
+  }
+
+  @override
   void onError(String error) {
-    print("onError $error");
     super.onError(error);
   }
 
@@ -199,8 +181,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   String _playbackPositionString() {
     var currentPosition = Duration(
-        milliseconds:
-            duration.inMilliseconds - currentPlaybackPosition.inMilliseconds);
+        seconds: duration.inSeconds - currentPlaybackPosition.inSeconds);
 
     return currentPosition.toString().split('.').first;
   }

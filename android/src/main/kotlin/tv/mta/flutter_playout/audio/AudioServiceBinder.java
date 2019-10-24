@@ -28,7 +28,7 @@ import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
 
-public class AudioServiceBinder extends Binder implements FlutterAVPlayer, MediaPlayer.OnPreparedListener {
+public class AudioServiceBinder extends Binder implements FlutterAVPlayer, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
 
     public static AudioServiceBinder currentService;
 
@@ -74,6 +74,10 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
     public final int UPDATE_PLAYER_STATE_TO_PAUSE = 2;
 
     public final int UPDATE_PLAYER_STATE_TO_PLAY = 3;
+
+    public final int UPDATE_PLAYER_STATE_TO_COMPLETE = 4;
+
+    public final int UPDATE_AUDIO_DURATION = 5;
 
     boolean isBound = true;
 
@@ -242,6 +246,8 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
                 audioPlayer.setOnPreparedListener(this);
 
+                audioPlayer.setOnCompletionListener(this);
+
                 audioPlayer.prepareAsync();
 
             } else {
@@ -348,11 +354,38 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
                         } catch (InterruptedException ex) { /* ignore */ }
                     }
+
+                    // Create update audio duration message.
+                    Message updateAudioDurationMsg = new Message();
+
+                    updateAudioDurationMsg.what = UPDATE_AUDIO_DURATION;
+
+                    // Send the message to caller activity's update audio progressbar Handler object.
+                    audioProgressUpdateHandler.sendMessage(updateAudioDurationMsg);
                 }
             }
         };
 
         updateAudioProgressThread.start();
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+
+        if(audioPlayer != null) {
+
+            audioPlayer.pause();
+
+            updatePlaybackState(PlayerState.PAUSED);
+
+            // Create update audio player state message.
+            Message updateAudioProgressMsg = new Message();
+
+            updateAudioProgressMsg.what = UPDATE_PLAYER_STATE_TO_COMPLETE;
+
+            // Send the message to caller activity's update audio Handler object.
+            audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
+        }
     }
 
     /**
