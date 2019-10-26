@@ -1,5 +1,7 @@
 # flutter_playout
 
+[![pub package](https://img.shields.io/pub/v/flutter_playout.svg)](https://pub.dartlang.org/packages/flutter_playout)
+
 Audio & Video player in Flutter. This plugin provides audio/video playback with background audio 
 support and lock screen controls for both iOS & Android. Also provides player events such as onPlay, 
 onPause, onTime etc. See example for more details.

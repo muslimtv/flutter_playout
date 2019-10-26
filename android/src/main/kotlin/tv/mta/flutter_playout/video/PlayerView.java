@@ -41,6 +41,12 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
                 player.onMediaChanged(call.arguments);
                 result.success(true);
                 break;
+            case "resume":
+                player.play();
+                break;
+            case "pause":
+                player.pause();
+                break;
             case "dispose":
                 dispose();
                 result.success(true);

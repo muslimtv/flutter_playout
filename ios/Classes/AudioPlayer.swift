@@ -322,8 +322,6 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     
     private func teardown() {
         
-        pause()
-        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         
         if let timeObserver = timeObserverToken {
@@ -335,6 +333,18 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setActive(false)
         } catch _ { }
+        
+        /* stop playback */
+        self.audioPlayer.pause()
+        
+        NotificationCenter.default.removeObserver(self)
+        
+        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status))
+        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
+        
+        self.flutterEventSink = nil
+        self.eventChannel?.setStreamHandler(nil)
     }
     
     private func onTimeInterval(time:CMTime) {

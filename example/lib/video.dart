@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_playout/player_observer.dart';
+import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/video.dart';
 
 class VideoPlayout extends StatelessWidget with PlayerObserver {
+  final PlayerState desiredState;
+
+  const VideoPlayout({Key key, this.desiredState}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -13,8 +18,9 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
           title: "MTA International",
           subtitle: "Reaching The Corners Of The Earth",
           isLiveStream: false,
-          url: "https://your_video_stream.com/stream_test.m3u8",
+          url: "https://your_video_stream.com/stream_test.m3u88",
           onViewCreated: _onViewCreated,
+          desiredState: desiredState,
         ),
       ),
     );

@@ -416,12 +416,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         @Override
         public void onPause() {
-            mPlayerView.setPlayWhenReady(false);
+            pause();
         }
 
         @Override
         public void onPlay() {
-            mPlayerView.setPlayWhenReady(true);
+            play();
         }
 
         @Override
@@ -431,7 +431,19 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         @Override
         public void onStop() {
+            pause();
+        }
+    }
+
+    public void pause() {
+        if (mPlayerView != null) {
             mPlayerView.setPlayWhenReady(false);
+        }
+    }
+
+    public void play() {
+        if (mPlayerView != null) {
+            mPlayerView.setPlayWhenReady(true);
         }
     }
 

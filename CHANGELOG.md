@@ -1,3 +1,7 @@
+## 1.0.9 [October 26, 2019]
+
+* Implemented `desiredState` flag in Video widget to play/pause video playback.
+
 ## 1.0.8 [October 24, 2019]
 
 * fixed an issue where audio player was not playing new media on url change
