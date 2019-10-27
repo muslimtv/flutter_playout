@@ -176,7 +176,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     /* create player view */
     func view() -> UIView {
         
-        if let videoURL = URL(string: self.url) {
+        if let videoURL = URL(string: self.url.trimmingCharacters(in: .whitespacesAndNewlines)) {
             
             do {
                 let audioSession = AVAudioSession.sharedInstance()
@@ -186,6 +186,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             /* Create the asset to play */
             let asset = AVAsset(url: videoURL)
+            
+            /* not a valid playback asset */
+            if (!asset.isPlayable) {
+                return UIView()
+            }
 
             /* Create a new AVPlayerItem with the asset and
              an array of asset keys to be automatically loaded */

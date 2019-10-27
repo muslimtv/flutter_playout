@@ -16,6 +16,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.annotation.RequiresApi;
@@ -28,7 +29,12 @@ import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
 
-public class AudioServiceBinder extends Binder implements FlutterAVPlayer, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+public class AudioServiceBinder
+        extends Binder
+        implements FlutterAVPlayer, MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+
+    private final String TAG = "AudioServiceBinder";
 
     public static AudioServiceBinder currentService;
 
@@ -78,6 +84,8 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
     public final int UPDATE_PLAYER_STATE_TO_COMPLETE = 4;
 
     public final int UPDATE_AUDIO_DURATION = 5;
+
+    public final int UPDATE_PLAYER_STATE_TO_ERROR = 6;
 
     boolean isBound = true;
 
@@ -261,6 +269,8 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
 
                 audioPlayer.setOnCompletionListener(this);
 
+                audioPlayer.setOnErrorListener(this);
+
                 audioPlayer.prepareAsync();
 
             } else {
@@ -406,6 +416,58 @@ public class AudioServiceBinder extends Binder implements FlutterAVPlayer, Media
             // Send the message to caller activity's update audio Handler object.
             audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
         }
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+
+        updatePlaybackState(PlayerState.PAUSED);
+
+        // Create update audio player state message.
+        Message updateAudioPlayerStateMessage = new Message();
+
+        updateAudioPlayerStateMessage.what = UPDATE_PLAYER_STATE_TO_ERROR;
+
+        Log.e(TAG, "onPlayerError: [what=" + what + "] [extra=" + extra + "]", null);
+        String errorMessage = "";
+        switch (what) {
+            case MediaPlayer.MEDIA_ERROR_IO:
+                errorMessage = "MEDIA_ERROR_IO: File or network related operation error";
+                break;
+            case MediaPlayer.MEDIA_ERROR_MALFORMED:
+                errorMessage = "MEDIA_ERROR_MALFORMED: Bitstream is not conforming to the related" +
+                        " coding standard or file spec";
+                break;
+            case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                errorMessage = "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:  The video is str" +
+                        "eamed and its container is not valid for progressive playback i.e the vi" +
+                        "deo's index (e.g moov atom) is not at the start of the file";
+                break;
+            case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                errorMessage = "MEDIA_ERROR_SERVER_DIED: Media server died";
+                break;
+            case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
+                errorMessage = "MEDIA_ERROR_TIMED_OUT: Some operation takes too long to complete," +
+                        " usually more than 3-5 seconds";
+                break;
+            case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                errorMessage = "MEDIA_ERROR_UNKNOWN: Unspecified media player error";
+                break;
+            case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
+                errorMessage = "MEDIA_ERROR_UNSUPPORTED: Bitstream is conforming to the related c" +
+                        "oding standard or file spec, but the media framework does not support th" +
+                        "e feature";
+                break;
+            default:
+                errorMessage = "MEDIA_ERROR_UNKNOWN: Unspecified media player error";
+                break;
+        }
+        updateAudioPlayerStateMessage.obj = errorMessage;
+
+        // Send the message to caller activity's update audio Handler object.
+        audioProgressUpdateHandler.sendMessage(updateAudioPlayerStateMessage);
+
+        return false;
     }
 
     /**

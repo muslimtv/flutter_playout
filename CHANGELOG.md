@@ -1,3 +1,9 @@
+## 1.0.10 [October 27, 2019]
+
+* fixed an issue causing audio player to crash on malformed URLs
+
+* added better exception handling for audio player
+
 ## 1.0.9 [October 26, 2019]
 
 * Implemented `desiredState` flag in Video widget to play/pause video playback.

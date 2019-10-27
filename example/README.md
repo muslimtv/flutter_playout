@@ -170,11 +170,11 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Video(
-          autoPlay: false,
+          autoPlay: true,
           title: "MTA International",
           subtitle: "Reaching The Corners Of The Earth",
-          isLiveStream: false,
-          url: "https://your_video_stream.com/stream_test.m3u88",
+          isLiveStream: true,
+          url: "https://your_video_stream.com/stream_test.m3u8",
           onViewCreated: _onViewCreated,
           desiredState: desiredState,
         ),
