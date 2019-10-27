@@ -139,10 +139,9 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
                 
                     if (audioURL != mediaURL) {
                         
-                        /* Create a new AVPlayerItem with the asset */
-                        let playerItem = AVPlayerItem(asset: asset)
+                        mediaURL = audioURL
                         
-                        audioPlayer = AVPlayer(playerItem: playerItem)
+                        audioPlayer = AVPlayer(url: url)
                         
                         let center = NotificationCenter.default
                         
@@ -168,12 +167,9 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
                         
                         seekTo(seconds: position / 1000)
                         
-                    } else {
-                        
-                        mediaURL = audioURL
-                        
-                        audioPlayer.play()
                     }
+                    
+                    audioPlayer.play()
                 }
             }
         }
@@ -432,7 +428,7 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         
         guard let item = self.audioPlayer.currentItem else { return }
         
-        let newDuration = item.asset.duration.seconds * 1000
+        let newDuration = item.duration.seconds * 1000
         
         if (newDuration.isNaN) {
             

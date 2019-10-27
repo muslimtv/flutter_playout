@@ -1,3 +1,9 @@
+## 1.0.11 [October 27, 2019]
+
+* fixed a bug in example app causing audio player to stop sending events after onComplete
+
+* fixed an issue with iOS audio player implementation causing URLs to not play
+
 ## 1.0.10 [October 27, 2019]
 
 * fixed an issue causing audio player to crash on malformed URLs

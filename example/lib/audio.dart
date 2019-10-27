@@ -20,6 +20,7 @@ class AudioPlayout extends StatefulWidget {
 class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   Audio _audioPlayer;
   PlayerState audioPlayerState = PlayerState.STOPPED;
+  bool _loading = false;
 
   Duration duration = Duration(milliseconds: 1);
   Duration currentPlaybackPosition = Duration.zero;
@@ -50,6 +51,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   void onPlay() {
     setState(() {
       audioPlayerState = PlayerState.PLAYING;
+      _loading = false;
     });
   }
 
@@ -62,7 +64,10 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   @override
   void onComplete() {
-    stop();
+    setState(() {
+      audioPlayerState = PlayerState.PAUSED;
+      currentPlaybackPosition = Duration.zero;
+    });
   }
 
   @override
@@ -106,36 +111,55 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
           Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              IconButton(
-                splashColor: Colors.transparent,
-                icon: Icon(
-                  isPlaying
-                      ? Icons.pause_circle_filled
-                      : Icons.play_circle_filled,
-                  color: Colors.white,
-                  size: 50,
+              Container(
+                padding: EdgeInsets.fromLTRB(0.0, 11.0, 0.0, 0.0),
+                margin: EdgeInsets.all(7.0),
+                child: Stack(
+                  children: <Widget>[
+                    IconButton(
+                      padding: EdgeInsets.all(0.0),
+                      splashColor: Colors.transparent,
+                      icon: Icon(
+                        isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_filled,
+                        color: Colors.white,
+                        size: 47,
+                      ),
+                      onPressed: () {
+                        if (isPlaying) {
+                          pause();
+                        } else {
+                          play();
+                        }
+                      },
+                    ),
+                    _loading
+                        ? Positioned.fill(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : Container(),
+                  ],
                 ),
-                onPressed: () {
-                  if (isPlaying) {
-                    pause();
-                  } else {
-                    play();
-                  }
-                },
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.fromLTRB(20.0, 11.0, 5.0, 3.0),
+                    padding: EdgeInsets.fromLTRB(7.0, 11.0, 5.0, 3.0),
                     child: Text(widget.title,
                         style:
                             TextStyle(fontSize: 11, color: Colors.grey[100])),
                   ),
                   Container(
-                    padding: EdgeInsets.fromLTRB(20.0, 0.0, 5.0, 0.0),
+                    padding: EdgeInsets.fromLTRB(7.0, 0.0, 5.0, 0.0),
                     child: Text(widget.subtitle,
                         style: TextStyle(fontSize: 19, color: Colors.white)),
                   ),
@@ -188,17 +212,18 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   // Request audio play
   Future<void> play() async {
+    setState(() {
+      _loading = true;
+    });
     // here we send position in case user has scrubbed already before hitting
     // play in which case we want playback to start from where user has
     // requested
+    print(currentPlaybackPosition);
     _audioPlayer.play(widget.url,
         title: widget.title,
         subtitle: widget.subtitle,
         position: currentPlaybackPosition,
         isLiveStream: true);
-    setState(() {
-      audioPlayerState = PlayerState.PLAYING;
-    });
   }
 
   // Request audio pause
