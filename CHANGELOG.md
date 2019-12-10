@@ -1,3 +1,23 @@
+## 1.0.16 [December 10, 2019]
+
+* Fixed an issue where onDuration wasn't being called after player re-init
+
+## 1.0.15 [December 10, 2019]
+
+* Fixed AVPlayer (iOS) reset issue on dispose
+
+## 1.0.14 [December 10, 2019]
+
+* Fixed an issue where Audio instance wasn't being cleared on dispose
+
+## 1.0.13 [December 10, 2019]
+
+* Implemented audio player as singleton
+
+## 1.0.12 [December 10, 2019]
+
+* Fixed an issue where dispose on iOS was failing because it was trying to remove observers twice
+
 ## 1.0.11 [October 27, 2019]
 
 * fixed a bug in example app causing audio player to stop sending events after onComplete

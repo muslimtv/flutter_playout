@@ -13,6 +13,8 @@ import MediaPlayer
 class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     static func register(with registrar: FlutterPluginRegistrar) {
         
+        let player = AudioPlayer()
+        
         let audioSession = AVAudioSession.sharedInstance()
         
         do {
@@ -21,9 +23,9 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         
         let channel = FlutterMethodChannel(name: "tv.mta/NativeAudioChannel", binaryMessenger: registrar.messenger())
         
-        registrar.addMethodCallDelegate(AudioPlayer.instance, channel: channel)
+        registrar.addMethodCallDelegate(player, channel: channel)
         
-        setupEventChannel(messenger: registrar.messenger(), instance: AudioPlayer.instance)
+        setupEventChannel(messenger: registrar.messenger(), instance: player)
     }
     
     private static func setupEventChannel(messenger:FlutterBinaryMessenger, instance:AudioPlayer) {
@@ -69,14 +71,14 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
           
           result(true)
       }
-          
-      /* stop audio playback */
-      else if ("stop" == call.method) {
-          
-          teardown()
-          
-          result(true)
-      }
+        
+        /* reset audio playback */
+        else if ("reset" == call.method) {
+            
+            reset()
+            
+            result(true)
+        }
           
       /* seek audio playback */
       else if ("seekTo" == call.method) {
@@ -91,12 +93,18 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
           
           result(true)
       }
+        
+        /* stop audio playback */
+        else if ("dispose" == call.method) {
+            
+            teardown()
+            
+            result(true)
+        }
           
       /* not implemented yet */
       else { result(FlutterMethodNotImplemented) }
     }
-    
-    static let instance = AudioPlayer()
     
     private override init() { }
     
@@ -342,6 +350,20 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
         }
     }
     
+    private func reset() {
+        
+        audioPlayer.pause()
+        
+        seekTo(seconds: 0.0)
+        
+        /* reset state */
+        self.mediaURL = ""
+        
+        onDurationChange()
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+    
     private func teardown() {
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -351,22 +373,19 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
             timeObserverToken = nil
         }
         
+        /* stop playback */
+        self.audioPlayer.pause()
+        
+        /* reset state */
+        self.mediaURL = ""
+        self.mediaDuration = 0.0
+        
+        NotificationCenter.default.removeObserver(self)
+        
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setActive(false)
         } catch _ { }
-        
-        /* stop playback */
-        self.audioPlayer.pause()
-        
-        NotificationCenter.default.removeObserver(self)
-        
-        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status))
-        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
-        self.audioPlayer.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
-        
-        self.flutterEventSink = nil
-        self.eventChannel?.setStreamHandler(nil)
     }
     
     private func onTimeInterval(time:CMTime) {

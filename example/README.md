@@ -240,13 +240,18 @@ import 'package:flutter_playout/player_state.dart';
 
 class AudioPlayout extends StatefulWidget {
   // Audio url to play
-  final String url = "https://your_audio_stream.com/stream_test.mp3";
+  final String url =
+      "https://your_audio_stream.com/stream_test.m3u8";
 
   // Audio track title. this will also be displayed in lock screen controls
   final String title = "MTA International";
 
   // Audio track subtitle. this will also be displayed in lock screen controls
   final String subtitle = "Reaching The Corners Of The Earth";
+
+  final PlayerState desiredState;
+
+  const AudioPlayout({Key key, this.desiredState}) : super(key: key);
 
   @override
   _AudioPlayout createState() => _AudioPlayout();
@@ -276,17 +281,40 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
     super.initState();
 
     // Init audio player with a callback to handle events
-    _audioPlayer = new Audio();
+    _audioPlayer = Audio.instance();
 
     // Listen for audio player events
     listenForAudioPlayerEvents();
   }
 
   @override
+  void didUpdateWidget(AudioPlayout oldWidget) {
+    if (oldWidget.desiredState != widget.desiredState) {
+      _onDesiredStateChanged(oldWidget);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  /// The [desiredState] flag has changed so need to update playback to
+  /// reflect the new state.
+  void _onDesiredStateChanged(AudioPlayout oldWidget) async {
+    switch (widget.desiredState) {
+      case PlayerState.PLAYING:
+        play();
+        break;
+      case PlayerState.PAUSED:
+        pause();
+        break;
+      case PlayerState.STOPPED:
+        pause();
+        break;
+    }
+  }
+
+  @override
   void onPlay() {
     setState(() {
       audioPlayerState = PlayerState.PLAYING;
-      _loading = false;
     });
   }
 
@@ -309,6 +337,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   void onTime(int position) {
     setState(() {
       currentPlaybackPosition = Duration(seconds: position);
+      _loading = false;
     });
   }
 
@@ -383,23 +412,25 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                   ],
                 ),
               ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.fromLTRB(7.0, 11.0, 5.0, 3.0),
-                    child: Text(widget.title,
-                        style:
-                            TextStyle(fontSize: 11, color: Colors.grey[100])),
-                  ),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(7.0, 0.0, 5.0, 0.0),
-                    child: Text(widget.subtitle,
-                        style: TextStyle(fontSize: 19, color: Colors.white)),
-                  ),
-                ],
-              )
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.fromLTRB(7.0, 11.0, 5.0, 3.0),
+                      child: Text(widget.title,
+                          style:
+                              TextStyle(fontSize: 11, color: Colors.grey[100])),
+                    ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(7.0, 0.0, 5.0, 0.0),
+                      child: Text(widget.subtitle,
+                          style: TextStyle(fontSize: 19, color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           Container(
@@ -409,10 +440,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
             activeColor: Colors.white,
             value: currentPlaybackPosition?.inMilliseconds?.toDouble() ?? 0.0,
             onChanged: (double value) {
-              setState(() {
-                currentPlaybackPosition = Duration(milliseconds: value.toInt());
-              });
-              seekTo(value / 1000);
+              seekTo(value);
             },
             min: 0.0,
             max: duration.inMilliseconds.toDouble(),
@@ -453,7 +481,6 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
     // here we send position in case user has scrubbed already before hitting
     // play in which case we want playback to start from where user has
     // requested
-    print(currentPlaybackPosition);
     _audioPlayer.play(widget.url,
         title: widget.title,
         subtitle: widget.subtitle,
@@ -469,7 +496,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   // Request audio stop. this will also clear lock screen controls
   Future<void> stop() async {
-    _audioPlayer.stop();
+    _audioPlayer.reset();
 
     setState(() {
       audioPlayerState = PlayerState.STOPPED;
@@ -478,8 +505,11 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   }
 
   // Seek to a point in seconds
-  Future<void> seekTo(double seconds) async {
-    _audioPlayer.seekTo(seconds);
+  Future<void> seekTo(double milliseconds) async {
+    setState(() {
+      currentPlaybackPosition = Duration(milliseconds: milliseconds.toInt());
+    });
+    _audioPlayer.seekTo(milliseconds / 1000);
   }
 
   @override

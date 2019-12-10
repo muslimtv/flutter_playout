@@ -50,16 +50,18 @@ class _PlayoutExampleState extends State<PlayoutExample> {
                     appBar: AppBar(),
                     body: Container(
                       child: Center(
-                        child: Text("Second Screen"),
+                        child: AudioPlayout(
+                          desiredState: _desiredState,
+                        ),
                       ),
                     ),
                   );
                 },
               ));
               // user is back. resume playback
-              setState(() {
-                _desiredState = PlayerState.PLAYING;
-              });
+//              setState(() {
+//                _desiredState = PlayerState.PLAYING;
+//              });
             },
           )
         ],
@@ -134,7 +136,9 @@ class _PlayoutExampleState extends State<PlayoutExample> {
               ),
             ),
             SliverToBoxAdapter(
-              child: AudioPlayout(),
+              child: AudioPlayout(
+                desiredState: _desiredState,
+              ),
             ),
           ],
         ),

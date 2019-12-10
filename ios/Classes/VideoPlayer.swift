@@ -529,9 +529,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             try audioSession.setActive(false)
         } catch _ { }
         
-        self.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.status))
-        self.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
-        self.player?.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
+        NotificationCenter.default.removeObserver(self)
         
         self.player?.flutterEventSink = nil
         

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -13,13 +15,10 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
 
     private final PlayerLayout player;
 
-    private MethodChannel channel;
-
     PlayerView(Context context, Activity activity, int id, BinaryMessenger messenger, Object args) {
 
-        channel = new MethodChannel(messenger, "tv.mta/NativeVideoPlayerMethodChannel_" + id);
-
-        channel.setMethodCallHandler(this);
+        new MethodChannel(messenger, "tv.mta/NativeVideoPlayerMethodChannel_" + id)
+                .setMethodCallHandler(this);
 
         player = new PlayerLayout(context, activity, messenger, id, args);
     }
@@ -35,7 +34,7 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
     }
 
     @Override
-    public void onMethodCall(MethodCall call, MethodChannel.Result result) {
+    public void onMethodCall(MethodCall call, @NotNull MethodChannel.Result result) {
         switch (call.method) {
             case "onMediaChanged":
                 player.onMediaChanged(call.arguments);

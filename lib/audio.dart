@@ -2,10 +2,17 @@ import 'package:flutter/services.dart';
 
 /// See [play] method as well as example app on how to use.
 class Audio {
-  MethodChannel _audioChannel;
+  static const MethodChannel _audioChannel =
+      MethodChannel('tv.mta/NativeAudioChannel');
 
-  Audio() {
-    _audioChannel = const MethodChannel('tv.mta/NativeAudioChannel');
+  Audio._();
+
+  static Audio _instance;
+  static Audio instance() {
+    if (_instance == null) {
+      _instance = Audio._();
+    }
+    return _instance;
   }
 
   /// Plays given [url] with native player. The [title] and [subtitle]
@@ -19,7 +26,7 @@ class Audio {
       String subtitle = "",
       Duration position = Duration.zero,
       bool isLiveStream = false}) async {
-    await _audioChannel.invokeMethod("play", <String, dynamic>{
+    return _audioChannel.invokeMethod("play", <String, dynamic>{
       "url": url,
       "title": title,
       "subtitle": subtitle,
@@ -29,20 +36,21 @@ class Audio {
   }
 
   Future<void> pause() async {
-    await _audioChannel.invokeMethod("pause");
+    return _audioChannel.invokeMethod("pause");
   }
 
-  Future<void> stop() async {
-    await _audioChannel.invokeMethod("stop");
+  Future<void> reset() async {
+    return _audioChannel.invokeMethod("reset");
   }
 
   Future<void> seekTo(double seconds) async {
-    await _audioChannel.invokeMethod("seekTo", <String, dynamic>{
+    return _audioChannel.invokeMethod("seekTo", <String, dynamic>{
       "second": seconds,
     });
   }
 
   Future<void> dispose() async {
-    await stop();
+    _instance = null;
+    await _audioChannel.invokeMethod("dispose");
   }
 }

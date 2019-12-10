@@ -21,13 +21,13 @@ public class RemoteReceiver extends BroadcastReceiver {
 
                         case KeyEvent.KEYCODE_MEDIA_PAUSE:
 
-                            AudioServiceBinder.currentService.pauseAudio();
+                            AudioServiceBinder.service.pauseAudio();
 
                             break;
 
                         case KeyEvent.KEYCODE_MEDIA_PLAY:
 
-                            AudioServiceBinder.currentService.startAudio(0);
+                            AudioServiceBinder.service.startAudio(0);
 
                             break;
                     }

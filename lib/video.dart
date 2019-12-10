@@ -41,6 +41,7 @@ class Video extends StatefulWidget {
 
 class _VideoState extends State<Video> {
   MethodChannel _methodChannel;
+  int _platformViewId;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +131,7 @@ class _VideoState extends State<Video> {
   }
 
   void _onPlatformViewCreated(int viewId) {
+    _platformViewId = viewId;
     _methodChannel =
         MethodChannel("tv.mta/NativeVideoPlayerMethodChannel_$viewId");
   }
@@ -174,10 +176,13 @@ class _VideoState extends State<Video> {
     }
   }
 
-  void _disposePlatformView({bool isDisposing = false}) {
-    if (_methodChannel != null) {
+  void _disposePlatformView({bool isDisposing = false}) async {
+    if (_methodChannel != null && _platformViewId != null) {
       /* clean platform view */
       _methodChannel.invokeMethod("dispose");
+
+      await SystemChannels.platform_views
+          .invokeMethod<void>('dispose', _platformViewId);
 
       if (!isDisposing) {
         setState(() {

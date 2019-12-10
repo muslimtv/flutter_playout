@@ -6,7 +6,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.Build;
@@ -34,37 +33,43 @@ public class AudioServiceBinder
         implements FlutterAVPlayer, MediaPlayer.OnPreparedListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
-    private final String TAG = "AudioServiceBinder";
+    private static final String TAG = "AudioServiceBinder";
 
-    public static AudioServiceBinder currentService;
+    /**
+     * The notification channel id we'll send notifications too
+     */
+    private static final String mNotificationChannelId = "NotificationBarController";
+    /**
+     * Playback Rate for the MediaPlayer is always 1.0.
+     */
+    private static final float PLAYBACK_RATE = 1.0f;
+    /**
+     * The notification id.
+     */
+    private static final int NOTIFICATION_ID = 0;
+    static AudioServiceBinder service;
+    // This is the message signal that inform audio progress updater to update audio progress.
+    final int UPDATE_AUDIO_PROGRESS_BAR = 1;
+    final int UPDATE_PLAYER_STATE_TO_PAUSE = 2;
+    final int UPDATE_PLAYER_STATE_TO_PLAY = 3;
+    final int UPDATE_PLAYER_STATE_TO_COMPLETE = 4;
+    final int UPDATE_AUDIO_DURATION = 5;
+    final int UPDATE_PLAYER_STATE_TO_ERROR = 6;
+    private boolean isPlayerReady = false;
+    private boolean isBound = true;
+
+    private boolean isMediaChanging = false;
 
     /**
      * Whether the {@link MediaPlayer} broadcasted an error.
      */
     private boolean mReceivedError;
 
-    /**
-     * Playback Rate for the MediaPlayer is always 1.0.
-     */
-    private static final float PLAYBACK_RATE = 1.0f;
-
-    /**
-     * The notification channel id we'll send notifications too
-     */
-    public static final String mNotificationChannelId = "NotificationBarController";
-
-    /**
-     * The notification id.
-     */
-    private static final int NOTIFICATION_ID = 0;
-
     private String audioFileUrl = "";
 
     private String title;
 
     private String subtitle;
-
-    private boolean streamAudio = false;
 
     private MediaPlayer audioPlayer = null;
 
@@ -73,23 +78,6 @@ public class AudioServiceBinder
     // This Handler object is a reference to the caller activity's Handler.
     // In the caller activity's handler, it will update the audio play progress.
     private Handler audioProgressUpdateHandler;
-
-    // This is the message signal that inform audio progress updater to update audio progress.
-    public final int UPDATE_AUDIO_PROGRESS_BAR = 1;
-
-    public final int UPDATE_PLAYER_STATE_TO_PAUSE = 2;
-
-    public final int UPDATE_PLAYER_STATE_TO_PLAY = 3;
-
-    public final int UPDATE_PLAYER_STATE_TO_COMPLETE = 4;
-
-    public final int UPDATE_AUDIO_DURATION = 5;
-
-    public final int UPDATE_PLAYER_STATE_TO_ERROR = 6;
-
-    boolean isBound = true;
-
-    boolean isMediaChanging = false;
 
     /**
      * The underlying {@link MediaSessionCompat}.
@@ -100,75 +88,51 @@ public class AudioServiceBinder
 
     private Activity activity;
 
-    public MediaPlayer getAudioPlayer() {
+    MediaPlayer getAudioPlayer() {
         return audioPlayer;
     }
 
-    public String getAudioFileUrl() {
+    String getAudioFileUrl() {
         return audioFileUrl;
     }
 
-    public void setAudioFileUrl(String audioFileUrl) {
+    void setAudioFileUrl(String audioFileUrl) {
         this.audioFileUrl = audioFileUrl;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public String getSubtitle() {
-        return subtitle;
-    }
-
-    public void setSubtitle(String subtitle) {
+    void setSubtitle(String subtitle) {
         this.subtitle = subtitle;
     }
 
-    public boolean isStreamAudio() {
-        return streamAudio;
-    }
-
-    public void setStreamAudio(boolean streamAudio) {
-        this.streamAudio = streamAudio;
-    }
-
-    public Handler getAudioProgressUpdateHandler() {
-        return audioProgressUpdateHandler;
-    }
-
-    public Context getContext() {
-        return context;
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
-    }
-
-    public Activity getActivity() {
-        return activity;
-    }
-
-    public void setActivity(Activity activity) {
-        this.activity = activity;
-    }
-
-    public boolean isMediaChanging() {
-        return isMediaChanging;
-    }
-
-    public void setMediaChanging(boolean mediaChanging) {
-        isMediaChanging = mediaChanging;
-    }
-
-    public void setAudioProgressUpdateHandler(Handler audioProgressUpdateHandler) {
+    void setAudioProgressUpdateHandler(Handler audioProgressUpdateHandler) {
         this.audioProgressUpdateHandler = audioProgressUpdateHandler;
     }
 
-    public void setAudioMetadata() {
+    private Context getContext() {
+        return context;
+    }
+
+    void setContext(Context context) {
+        this.context = context;
+    }
+
+    void setActivity(Activity activity) {
+        this.activity = activity;
+    }
+
+    boolean isMediaChanging() {
+        return isMediaChanging;
+    }
+
+    void setMediaChanging(boolean mediaChanging) {
+        isMediaChanging = mediaChanging;
+    }
+
+    private void setAudioMetadata() {
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
@@ -177,7 +141,7 @@ public class AudioServiceBinder
         mMediaSessionCompat.setMetadata(metadata);
     }
 
-    public void startAudio(int startPositionInMills) {
+    void startAudio(int startPositionInMills) {
 
         this.startPositionInMills = startPositionInMills;
 
@@ -196,15 +160,18 @@ public class AudioServiceBinder
             audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
         }
 
-        currentService = this;
+        service = this;
     }
 
-    public void seekAudio(int position) {
+    void seekAudio(int position) {
 
-        audioPlayer.seekTo(position * 1000);
+        if (isPlayerReady) {
+
+            audioPlayer.seekTo(position * 1000);
+        }
     }
 
-    public void pauseAudio() {
+    void pauseAudio() {
 
         if (audioPlayer != null) {
 
@@ -225,7 +192,7 @@ public class AudioServiceBinder
         }
     }
 
-    public void stopAudio() {
+    void reset() {
 
         if (audioPlayer != null) {
 
@@ -234,17 +201,20 @@ public class AudioServiceBinder
                 audioPlayer.stop();
             }
 
+            audioPlayer.reset();
+
             updatePlaybackState(PlayerState.COMPLETE);
         }
-
-        onDestroy();
     }
 
-    private void cleanPlayerNotification() {
+    void cleanPlayerNotification() {
         NotificationManager notificationManager = (NotificationManager)
                 getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.cancel(NOTIFICATION_ID);
+        if (notificationManager != null) {
+
+            notificationManager.cancel(NOTIFICATION_ID);
+        }
     }
 
     private void initAudioPlayer() {
@@ -256,11 +226,6 @@ public class AudioServiceBinder
                 audioPlayer = new MediaPlayer();
 
                 if (!TextUtils.isEmpty(getAudioFileUrl())) {
-
-                    if (isStreamAudio()) {
-
-                        audioPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                    }
 
                     audioPlayer.setDataSource(getAudioFileUrl());
                 }
@@ -278,10 +243,15 @@ public class AudioServiceBinder
                 audioPlayer.start();
             }
 
-        } catch (IOException ex) { mReceivedError = true; }
+        } catch (IOException ex) {
+            mReceivedError = true;
+        }
     }
 
-    public void resetPlayer() {
+    @Override
+    public void onDestroy() {
+
+        isBound = false;
 
         try {
 
@@ -304,15 +274,7 @@ public class AudioServiceBinder
         } catch (Exception e) { /* ignore */ }
     }
 
-    @Override
-    public void onDestroy() {
-
-        isBound = false;
-
-        resetPlayer();
-    }
-
-    public int getCurrentAudioPosition() {
+    int getCurrentAudioPosition() {
         int ret = 0;
 
         if (audioPlayer != null) {
@@ -325,6 +287,8 @@ public class AudioServiceBinder
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+
+        isPlayerReady = true;
 
         setMediaChanging(false);
 
@@ -360,38 +324,45 @@ public class AudioServiceBinder
 
                 while (isBound) {
 
-                    if (audioPlayer != null && audioPlayer.isPlaying()) {
+                    try {
 
-                        // Create update audio progress message.
-                        Message updateAudioProgressMsg = new Message();
+                        if (audioPlayer != null && audioPlayer.isPlaying()) {
 
-                        updateAudioProgressMsg.what = UPDATE_AUDIO_PROGRESS_BAR;
+                            // Create update audio progress message.
+                            Message updateAudioProgressMsg = new Message();
+
+                            updateAudioProgressMsg.what = UPDATE_AUDIO_PROGRESS_BAR;
+
+                            // Send the message to caller activity's update audio progressbar Handler object.
+                            audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
+
+                            try {
+
+                                Thread.sleep(1000);
+
+                            } catch (InterruptedException ex) { /* ignore */ }
+
+                        } else {
+
+                            try {
+
+                                Thread.sleep(100);
+
+                            } catch (InterruptedException ex) { /* ignore */ }
+                        }
+
+                        // Create update audio duration message.
+                        Message updateAudioDurationMsg = new Message();
+
+                        updateAudioDurationMsg.what = UPDATE_AUDIO_DURATION;
 
                         // Send the message to caller activity's update audio progressbar Handler object.
-                        audioProgressUpdateHandler.sendMessage(updateAudioProgressMsg);
+                        audioProgressUpdateHandler.sendMessage(updateAudioDurationMsg);
 
-                        try {
+                    } catch (Exception e) {
 
-                            Thread.sleep(1000);
-
-                        } catch (InterruptedException ex) { /* ignore */ }
-
-                    } else {
-
-                        try {
-
-                            Thread.sleep(100);
-
-                        } catch (InterruptedException ex) { /* ignore */ }
+                        Log.e(TAG, "onPrepared:updateAudioProgressThread: ", e);
                     }
-
-                    // Create update audio duration message.
-                    Message updateAudioDurationMsg = new Message();
-
-                    updateAudioDurationMsg.what = UPDATE_AUDIO_DURATION;
-
-                    // Send the message to caller activity's update audio progressbar Handler object.
-                    audioProgressUpdateHandler.sendMessage(updateAudioDurationMsg);
                 }
             }
         };
@@ -402,7 +373,7 @@ public class AudioServiceBinder
     @Override
     public void onCompletion(MediaPlayer mp) {
 
-        if(audioPlayer != null) {
+        if (audioPlayer != null) {
 
             audioPlayer.pause();
 
@@ -428,7 +399,7 @@ public class AudioServiceBinder
 
         updateAudioPlayerStateMessage.what = UPDATE_PLAYER_STATE_TO_ERROR;
 
-        Log.e(TAG, "onPlayerError: [what=" + what + "] [extra=" + extra + "]", null);
+        Log.e("AudioServiceBinder", "onPlayerError: [what=" + what + "] [extra=" + extra + "]", null);
         String errorMessage = "";
         switch (what) {
             case MediaPlayer.MEDIA_ERROR_IO:
@@ -468,36 +439,6 @@ public class AudioServiceBinder
         audioProgressUpdateHandler.sendMessage(updateAudioPlayerStateMessage);
 
         return false;
-    }
-
-    /**
-     * A {@link android.support.v4.media.session.MediaSessionCompat.Callback} implementation for MediaPlayer.
-     */
-    private final class MediaSessionCallback extends MediaSessionCompat.Callback {
-
-        public MediaSessionCallback(MediaPlayer player) {
-            audioPlayer = player;
-        }
-
-        @Override
-        public void onPause() {
-            audioPlayer.pause();
-        }
-
-        @Override
-        public void onPlay() {
-            audioPlayer.start();
-        }
-
-        @Override
-        public void onSeekTo(long pos) {
-            audioPlayer.seekTo((int) pos);
-        }
-
-        @Override
-        public void onStop() {
-            audioPlayer.stop();
-        }
     }
 
     private PlaybackStateCompat.Builder getPlaybackStateBuilder() {
@@ -546,7 +487,8 @@ public class AudioServiceBinder
         updateNotification(capabilities);
     }
 
-    private @PlaybackStateCompat.Actions long getCapabilities(PlayerState playerState) {
+    private @PlaybackStateCompat.Actions
+    long getCapabilities(PlayerState playerState) {
         long capabilities = 0;
 
         switch (playerState) {
@@ -582,26 +524,37 @@ public class AudioServiceBinder
         NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
                 activity, context, mMediaSessionCompat, mNotificationChannelId);
 
-        notificationBuilder = addActions(notificationBuilder, capabilities);
+        if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
+            notificationBuilder.addAction(R.drawable.ic_pause, "Pause",
+                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PAUSE));
+        }
+
+        if ((capabilities & PlaybackStateCompat.ACTION_PLAY) != 0) {
+            notificationBuilder.addAction(R.drawable.ic_play, "Play",
+                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PLAY));
+        }
 
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+        if (notificationManager != null) {
+
+            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void createNotificationChannel(){
+    private void createNotificationChannel() {
 
-        NotificationManager notificationManager = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
-
-        String id = mNotificationChannelId;
+        NotificationManager notificationManager = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         CharSequence channelNameDisplayedToUser = "Notification Bar Controls";
 
         int importance = NotificationManager.IMPORTANCE_LOW;
 
-        NotificationChannel newChannel = new NotificationChannel(id,channelNameDisplayedToUser,importance);
+        NotificationChannel newChannel = new NotificationChannel(
+                mNotificationChannelId, channelNameDisplayedToUser, importance);
 
         newChannel.setDescription("All notifications");
 
@@ -609,20 +562,39 @@ public class AudioServiceBinder
 
         newChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
-        notificationManager.createNotificationChannel(newChannel);
+        if (notificationManager != null) {
+
+            notificationManager.createNotificationChannel(newChannel);
+        }
     }
 
-    private NotificationCompat.Builder addActions(NotificationCompat.Builder notification,
-                                                  long capabilities) {
+    /**
+     * A {@link android.support.v4.media.session.MediaSessionCompat.Callback} implementation for MediaPlayer.
+     */
+    private final class MediaSessionCallback extends MediaSessionCompat.Callback {
 
-        if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
-            notification.addAction(R.drawable.ic_pause, "Pause",
-                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PAUSE));
+        MediaSessionCallback(MediaPlayer player) {
+            audioPlayer = player;
         }
-        if ((capabilities & PlaybackStateCompat.ACTION_PLAY) != 0) {
-            notification.addAction(R.drawable.ic_play, "Play",
-                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PLAY));
+
+        @Override
+        public void onPause() {
+            audioPlayer.pause();
         }
-        return notification;
+
+        @Override
+        public void onPlay() {
+            audioPlayer.start();
+        }
+
+        @Override
+        public void onSeekTo(long pos) {
+            audioPlayer.seekTo((int) pos);
+        }
+
+        @Override
+        public void onStop() {
+            audioPlayer.stop();
+        }
     }
 }
