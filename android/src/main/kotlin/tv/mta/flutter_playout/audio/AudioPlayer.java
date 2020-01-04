@@ -180,7 +180,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
         boolean mediaChanged = true;
 
-        if (this.audioURL != null) {
+        if (this.audioURL != null && audioServiceBinder != null) {
 
             mediaChanged = !this.audioURL.equals(audioServiceBinder.getAudioFileUrl());
         }

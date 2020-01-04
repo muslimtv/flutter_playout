@@ -1,3 +1,7 @@
+## 1.0.17 [January 4, 2020]
+
+* Fixed an issue where audioServiceBinder was being used before initialisation
+
 ## 1.0.16 [December 10, 2019]
 
 * Fixed an issue where onDuration wasn't being called after player re-init
