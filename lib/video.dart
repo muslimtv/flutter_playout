@@ -42,16 +42,27 @@ class Video extends StatefulWidget {
 class _VideoState extends State<Video> {
   MethodChannel _methodChannel;
   int _platformViewId;
+  Widget _playerWidget = Container();
+
+  @override
+  void initState() {
+    super.initState();
+    _setupPlayer();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget playerWidget = Container();
+    return GestureDetector(
+      onTap: () {},
+      child: _playerWidget,
+    );
+  }
 
-    /* setup player */
+  void _setupPlayer() {
     if (widget.url != null && widget.url.isNotEmpty) {
       /* Android */
       if (Platform.isAndroid) {
-        playerWidget = AndroidView(
+        _playerWidget = AndroidView(
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
@@ -77,7 +88,7 @@ class _VideoState extends State<Video> {
 
       /* iOS */
       else if (Platform.isIOS) {
-        playerWidget = UiKitView(
+        _playerWidget = UiKitView(
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
@@ -100,18 +111,14 @@ class _VideoState extends State<Video> {
           ].toSet(),
         );
       }
-    } else {
-      _disposePlatformView();
     }
-
-    return GestureDetector(
-      onTap: () {},
-      child: playerWidget,
-    );
   }
 
   @override
   void didUpdateWidget(Video oldWidget) {
+    if (widget.url == null || widget.url.isEmpty) {
+      _disposePlatformView();
+    }
     if (oldWidget.url != widget.url ||
         oldWidget.title != widget.title ||
         oldWidget.subtitle != widget.subtitle ||

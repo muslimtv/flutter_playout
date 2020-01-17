@@ -1,3 +1,7 @@
+## 1.0.18 [January 17, 2020]
+
+* Moved player initialisation outside of build() method fixing issue where the underlying platform view keeps rebuilding whenever widget updates.
+
 ## 1.0.17 [January 4, 2020]
 
 * Fixed an issue where audioServiceBinder was being used before initialisation
