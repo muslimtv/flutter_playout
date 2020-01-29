@@ -66,11 +66,12 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     
     /* player metadata */
     var url:String = ""
-    var autoPlay:Bool = false
+    var autoPlay:Bool = true
     var title:String = ""
     var subtitle:String = ""
     var isLiveStream:Bool = false
-    
+    var showControls:Bool = false
+
     private var mediaDuration = 0.0
     
     private var isPlaying = false
@@ -116,6 +117,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.title = parsedData["title"] as! String
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
+        self.showControls = parsedData["showControls"] as! Bool
     }
     
     /* set Flutter event channel */
@@ -146,7 +148,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.title = parsedData["title"] as! String
                 self.subtitle = parsedData["subtitle"] as! String
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
-                
+                self.showControls = parsedData["showControls"] as! Bool
+
                 self.onMediaChanged()
                 
                 result(true)
@@ -229,11 +232,12 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             self.playerViewController?.player = self.player
             self.playerViewController?.view.frame = self.frame
-            
+            playerViewController?.showsPlaybackControls = self.showControls
             /* setup lock screen controls */
             setupRemoteTransportControls()
-            setupNowPlayingInfoPanel()
             
+            setupNowPlayingInfoPanel()
+           
             /* start playback if svet to auto play */
             if (self.autoPlay) {
                 play()

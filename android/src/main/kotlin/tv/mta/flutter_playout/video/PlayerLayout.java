@@ -95,6 +95,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean autoPlay = false;
 
+    private boolean showControls = false;
+
     private long mediaDuration = 0L;
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
@@ -156,6 +158,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.autoPlay = args.getBoolean("autoPlay");
 
+            this.showControls = args.getBoolean("showControls");
+
             initPlayer();
 
         } catch (Exception e) { /* ignore */ }
@@ -188,6 +192,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
+
+        setUseController(showControls);
 
         listenForPlayerTimeChange();
 
@@ -293,15 +299,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         switch (playerState) {
             case PLAYING:
+            case BUFFERING:
                 capabilities |= PlaybackStateCompat.ACTION_PAUSE
                         | PlaybackStateCompat.ACTION_STOP;
                 break;
             case PAUSED:
                 capabilities |= PlaybackStateCompat.ACTION_PLAY
-                        | PlaybackStateCompat.ACTION_STOP;
-                break;
-            case BUFFERING:
-                capabilities |= PlaybackStateCompat.ACTION_PAUSE
                         | PlaybackStateCompat.ACTION_STOP;
                 break;
             case IDLE:
