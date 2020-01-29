@@ -23,6 +23,7 @@ class PlayoutExample extends StatefulWidget {
 
 class _PlayoutExampleState extends State<PlayoutExample> {
   PlayerState _desiredState = PlayerState.PLAYING;
+  bool _showPlayerControls = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +64,16 @@ class _PlayoutExampleState extends State<PlayoutExample> {
 //                _desiredState = PlayerState.PLAYING;
 //              });
             },
-          )
+          ),
+          /* toggle show player controls */
+          IconButton(
+            icon: Icon(Icons.adjust),
+            onPressed: () async {
+              setState(() {
+                _showPlayerControls = !_showPlayerControls;
+              });
+            },
+          ),
         ],
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -114,6 +124,7 @@ class _PlayoutExampleState extends State<PlayoutExample> {
             SliverToBoxAdapter(
                 child: VideoPlayout(
               desiredState: _desiredState,
+              showPlayerControls: _showPlayerControls,
             )),
             SliverToBoxAdapter(
               child: Container(

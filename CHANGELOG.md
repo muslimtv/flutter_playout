@@ -1,3 +1,7 @@
+## 1.0.19 [January 29, 2020]
+
+* Merged pull request #15 - Ability to show/hide player controls
+
 ## 1.0.18 [January 17, 2020]
 
 * Moved player initialisation outside of build() method fixing issue where the underlying platform view keeps rebuilding whenever widget updates.

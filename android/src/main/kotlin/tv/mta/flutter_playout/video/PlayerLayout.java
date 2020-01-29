@@ -36,6 +36,9 @@ import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.JSONMethodCodec;
@@ -457,27 +460,39 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         try {
 
-            try {
+            JSONObject args = (JSONObject) arguments;
 
-                JSONObject args = (JSONObject) arguments;
+            this.url = args.getString("url");
 
-                this.url = args.getString("url");
+            this.title = args.getString("title");
 
-                this.title = args.getString("title");
+            this.subtitle = args.getString("description");
 
-                this.subtitle = args.getString("description");
+            /* Produces DataSource instances through which media data is loaded. */
+            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
+                    Util.getUserAgent(context, "flutter_playout"));
 
-                /* Produces DataSource instances through which media data is loaded. */
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                        Util.getUserAgent(context, "flutter_playout"));
+            /* This is the new MediaSource representing the media to be played. */
+            MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(Uri.parse(this.url));
 
-                /* This is the new MediaSource representing the media to be played. */
-                MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(Uri.parse(this.url));
+            mPlayerView.prepare(videoSource);
 
-                mPlayerView.prepare(videoSource);
+        } catch (Exception e) { /* ignore */ }
+    }
 
-            } catch (Exception e) { /* ignore */ }
+    public void onShowControlsFlagChanged(Object arguments) {
+
+        try {
+
+            if (arguments instanceof HashMap) {
+
+                HashMap<String, Object> args = (HashMap<String, Object>) arguments;
+
+                boolean sc = Boolean.parseBoolean(args.get("showControls").toString());
+
+                setUseController(sc);
+            }
 
         } catch (Exception e) { /* ignore */ }
     }

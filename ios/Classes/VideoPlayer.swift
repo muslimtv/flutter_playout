@@ -155,6 +155,19 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 result(true)
             }
                 
+            if ("onShowControlsFlagChanged" == call.method) {
+                
+                /* data as JSON */
+                let parsedData = call.arguments as! [String: Any]
+
+                /* set incoming player controls flag */
+                self.showControls = parsedData["showControls"] as! Bool
+
+                self.onShowControlsFlagChanged()
+                
+                result(true)
+            }
+                
             else if ("resume" == call.method) {
                 self.play()
             }
@@ -232,7 +245,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             self.playerViewController?.player = self.player
             self.playerViewController?.view.frame = self.frame
-            playerViewController?.showsPlaybackControls = self.showControls
+            self.playerViewController?.showsPlaybackControls = self.showControls
             /* setup lock screen controls */
             setupRemoteTransportControls()
             
@@ -272,6 +285,10 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 setupNowPlayingInfoPanel()
             }
         }
+    }
+    
+    private func onShowControlsFlagChanged() {
+        self.playerViewController?.showsPlaybackControls = self.showControls
     }
     
     @objc func onComplete(_ notification: Notification) {

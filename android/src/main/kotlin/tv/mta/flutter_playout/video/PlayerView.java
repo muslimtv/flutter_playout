@@ -40,6 +40,10 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
                 player.onMediaChanged(call.arguments);
                 result.success(true);
                 break;
+            case "onShowControlsFlagChanged":
+                player.onShowControlsFlagChanged(call.arguments);
+                result.success(true);
+                break;
             case "resume":
                 player.play();
                 break;

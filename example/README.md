@@ -28,6 +28,7 @@ class PlayoutExample extends StatefulWidget {
 
 class _PlayoutExampleState extends State<PlayoutExample> {
   PlayerState _desiredState = PlayerState.PLAYING;
+  bool _showPlayerControls = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,18 +56,29 @@ class _PlayoutExampleState extends State<PlayoutExample> {
                     appBar: AppBar(),
                     body: Container(
                       child: Center(
-                        child: Text("Second Screen"),
+                        child: AudioPlayout(
+                          desiredState: _desiredState,
+                        ),
                       ),
                     ),
                   );
                 },
               ));
               // user is back. resume playback
+//              setState(() {
+//                _desiredState = PlayerState.PLAYING;
+//              });
+            },
+          ),
+          /* toggle show player controls */
+          IconButton(
+            icon: Icon(Icons.adjust),
+            onPressed: () async {
               setState(() {
-                _desiredState = PlayerState.PLAYING;
+                _showPlayerControls = !_showPlayerControls;
               });
             },
-          )
+          ),
         ],
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -117,6 +129,7 @@ class _PlayoutExampleState extends State<PlayoutExample> {
             SliverToBoxAdapter(
                 child: VideoPlayout(
               desiredState: _desiredState,
+              showPlayerControls: _showPlayerControls,
             )),
             SliverToBoxAdapter(
               child: Container(
@@ -139,7 +152,9 @@ class _PlayoutExampleState extends State<PlayoutExample> {
               ),
             ),
             SliverToBoxAdapter(
-              child: AudioPlayout(),
+              child: AudioPlayout(
+                desiredState: _desiredState,
+              ),
             ),
           ],
         ),
@@ -161,8 +176,10 @@ import 'package:flutter_playout/video.dart';
 
 class VideoPlayout extends StatelessWidget with PlayerObserver {
   final PlayerState desiredState;
+  final bool showPlayerControls;
 
-  const VideoPlayout({Key key, this.desiredState}) : super(key: key);
+  const VideoPlayout({Key key, this.desiredState, this.showPlayerControls})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +188,7 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
         aspectRatio: 16 / 9,
         child: Video(
           autoPlay: true,
+          showControls: showPlayerControls,
           title: "MTA International",
           subtitle: "Reaching The Corners Of The Earth",
           isLiveStream: true,

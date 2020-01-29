@@ -1,4 +1,4 @@
-# flutter_playout
+# AVPlayer for Flutter
 
 [![pub package](https://img.shields.io/pub/v/flutter_playout.svg)](https://pub.dartlang.org/packages/flutter_playout)
 

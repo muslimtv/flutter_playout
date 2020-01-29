@@ -7,16 +7,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_playout/player_state.dart';
 
 /// Video plugin for playing HLS stream using native player. [autoPlay] flag
-/// controls whether to start playback as soon as player is ready. The [title]
-/// and [subtitle] are used for lock screen info panel on both iOS & Android.
-/// The [isLiveStream] flag is only used on iOS to change the scrub-bar look
-/// on lock screen info panel. It has no affect on the actual functionality
-/// of the plugin. Defaults to false. Use [onViewCreated] callback to get
-/// notified once the underlying [PlatformView] is setup.
-/// The [desiredState] enum can be used to control play/pause. If the value
-/// change, the widget will make sure that player is in sync with the new state.
+/// controls whether to start playback as soon as player is ready. To show/hide
+/// player controls, use [showControls] flag. The [title] and [subtitle] are
+/// used for lock screen info panel on both iOS & Android. The [isLiveStream]
+/// flag is only used on iOS to change the scrub-bar look on lock screen info
+/// panel. It has no affect on the actual functionality of the plugin. Defaults
+/// to false. Use [onViewCreated] callback to get notified once the underlying
+/// [PlatformView] is setup. The [desiredState] enum can be used to control
+/// play/pause. If the value change, the widget will make sure that player is
+/// in sync with the new state.
 class Video extends StatefulWidget {
   final bool autoPlay;
+  final bool showControls;
   final String url;
   final String title;
   final String subtitle;
@@ -27,6 +29,7 @@ class Video extends StatefulWidget {
   const Video(
       {Key key,
       this.autoPlay = false,
+      this.showControls = true,
       this.url,
       this.title = "",
       this.subtitle = "",
@@ -66,6 +69,7 @@ class _VideoState extends State<Video> {
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
+            "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
@@ -92,6 +96,7 @@ class _VideoState extends State<Video> {
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
+            "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
@@ -128,6 +133,9 @@ class _VideoState extends State<Video> {
     if (oldWidget.desiredState != widget.desiredState) {
       _onDesiredStateChanged(oldWidget);
     }
+    if (oldWidget.showControls != widget.showControls) {
+      _onShowControlsFlagChanged();
+    }
     super.didUpdateWidget(oldWidget);
   }
 
@@ -157,6 +165,12 @@ class _VideoState extends State<Video> {
         _pausePlayback();
         break;
     }
+  }
+
+  void _onShowControlsFlagChanged() async {
+    _methodChannel.invokeMethod("onShowControlsFlagChanged", {
+      "showControls": widget.showControls,
+    });
   }
 
   void _pausePlayback() async {

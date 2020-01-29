@@ -5,8 +5,10 @@ import 'package:flutter_playout/video.dart';
 
 class VideoPlayout extends StatelessWidget with PlayerObserver {
   final PlayerState desiredState;
+  final bool showPlayerControls;
 
-  const VideoPlayout({Key key, this.desiredState}) : super(key: key);
+  const VideoPlayout({Key key, this.desiredState, this.showPlayerControls})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,7 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
         aspectRatio: 16 / 9,
         child: Video(
           autoPlay: true,
+          showControls: showPlayerControls,
           title: "MTA International",
           subtitle: "Reaching The Corners Of The Earth",
           isLiveStream: true,
