@@ -56,6 +56,8 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   void didUpdateWidget(AudioPlayout oldWidget) {
     if (oldWidget.desiredState != widget.desiredState) {
       _onDesiredStateChanged(oldWidget);
+    } else if (oldWidget.url != widget.url) {
+      play();
     }
     super.didUpdateWidget(oldWidget);
   }

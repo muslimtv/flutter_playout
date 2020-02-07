@@ -1,3 +1,11 @@
+## 1.0.24 [February 7, 2020]
+
+* Updated example to include media change callback
+
+## 1.0.23 [February 7, 2020]
+
+* Fixed an issue where media change (url change) was not being registered with Android audio player
+
 ## 1.0.22 [February 7, 2020]
 
 * Fixed an issue where audio player on Android native side was not being disposed properly

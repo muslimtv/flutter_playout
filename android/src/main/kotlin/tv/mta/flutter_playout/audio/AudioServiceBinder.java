@@ -203,6 +203,8 @@ public class AudioServiceBinder
 
             audioPlayer.reset();
 
+            audioPlayer = null;
+
             updatePlaybackState(PlayerState.COMPLETE);
         }
     }
@@ -237,8 +239,9 @@ public class AudioServiceBinder
                 audioPlayer.setOnErrorListener(this);
 
                 audioPlayer.prepareAsync();
+            }
 
-            } else {
+            else {
 
                 audioPlayer.start();
             }
