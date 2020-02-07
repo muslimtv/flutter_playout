@@ -23,12 +23,12 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -37,7 +37,6 @@ import com.google.android.exoplayer2.util.Util;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -190,7 +189,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void initPlayer() {
 
-        mPlayerView = ExoPlayerFactory.newSimpleInstance(context);
+        DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
+
+        mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
@@ -529,7 +530,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             isBound = false;
 
-            /* let Player know that the app is being destroyed */
+            mPlayerView.stop(true);
+
             mPlayerView.release();
 
             doUnbindMediaNotificationManagerService();

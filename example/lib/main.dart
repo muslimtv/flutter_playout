@@ -23,7 +23,7 @@ class PlayoutExample extends StatefulWidget {
 
 class _PlayoutExampleState extends State<PlayoutExample> {
   PlayerState _desiredState = PlayerState.PLAYING;
-  bool _showPlayerControls = false;
+  bool _showPlayerControls = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(

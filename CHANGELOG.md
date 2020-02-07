@@ -1,3 +1,7 @@
+## 1.0.20 [February 7, 2020]
+
+* Fixed an issue throwing exception at video platform view dispose
+
 ## 1.0.19 [January 29, 2020]
 
 * Merged pull request #15 - Ability to show/hide player controls
