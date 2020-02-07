@@ -1,3 +1,8 @@
+## 1.0.25 [February 7, 2020]
+
+* Fixed a bug where audio service wasn't being destroyed with player
+* Fixed an issue where onTime was not being called after audio player is disposed once and recreated
+
 ## 1.0.24 [February 7, 2020]
 
 * Updated example to include media change callback

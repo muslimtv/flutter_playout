@@ -293,6 +293,8 @@ public class AudioServiceBinder
 
         isPlayerReady = true;
 
+        isBound = true;
+
         setMediaChanging(false);
 
         if (startPositionInMills > 0) {
@@ -483,7 +485,11 @@ public class AudioServiceBinder
                 }
                 break;
         }
-        newPlaybackState.setState(playbackStateCompat, (long) audioPlayer.getCurrentPosition(), PLAYBACK_RATE);
+
+        if (audioPlayer != null) {
+            newPlaybackState.setState(playbackStateCompat,
+                    (long) audioPlayer.getCurrentPosition(), PLAYBACK_RATE);
+        }
 
         mMediaSessionCompat.setPlaybackState(newPlaybackState.build());
 
