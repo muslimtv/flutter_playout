@@ -1,3 +1,7 @@
+## 1.0.21 [February 7, 2020]
+
+* Changed video platform view dispose to use method channel
+
 ## 1.0.20 [February 7, 2020]
 
 * Fixed an issue throwing exception at video platform view dispose
