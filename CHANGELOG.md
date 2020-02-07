@@ -1,3 +1,7 @@
+## 1.0.22 [February 7, 2020]
+
+* Fixed an issue where audio player on Android native side was not being disposed properly
+
 ## 1.0.21 [February 7, 2020]
 
 * Changed video platform view dispose to use method channel

@@ -21,7 +21,7 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
           title: "MTA International",
           subtitle: "Reaching The Corners Of The Earth",
           isLiveStream: true,
-          url: "https://your_video_stream.com/stream_test.m3u8",
+          url: null,
           onViewCreated: _onViewCreated,
           desiredState: desiredState,
         ),
