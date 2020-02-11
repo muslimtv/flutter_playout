@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -81,6 +82,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      */
     private Activity activity;
     private int viewId;
+
+    private DefaultTrackSelector trackSelector;
 
     /**
      * Context
@@ -189,7 +192,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void initPlayer() {
 
-        DefaultTrackSelector trackSelector = new DefaultTrackSelector(context);
+        trackSelector = new DefaultTrackSelector(context);
+
+        trackSelector.setParameters(
+                trackSelector.buildUponParameters().setPreferredAudioLanguage("mul"));
 
         mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
 
@@ -221,6 +227,29 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         setupMediaSession();
 
         doBindMediaNotificationManagerService();
+    }
+
+    /**
+     * set audio language for player - language must be one of available in HLS manifest
+     * currently playing
+     *
+     * @param arguments
+     */
+    public void setPreferredAudioLanguage(Object arguments) {
+        try {
+
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
+
+            String languageCode = args.get("code");
+
+            if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
+
+                trackSelector.setParameters(
+                        trackSelector.buildUponParameters()
+                                .setPreferredAudioLanguage(languageCode));
+            }
+
+        } catch (Exception e) { /* ignore */ }
     }
 
     private void setupMediaSession() {

@@ -50,6 +50,9 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
             case "pause":
                 player.pause();
                 break;
+            case "setPreferredAudioLanguage":
+                player.setPreferredAudioLanguage(call.arguments);
+                break;
             case "dispose":
                 dispose();
                 result.success(true);

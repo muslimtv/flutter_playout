@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_playout/multiaudio/HLSManifestLanguage.dart';
+import 'package:flutter_playout/multiaudio/MultiAudioSupport.dart';
 import 'package:flutter_playout/player_observer.dart';
 import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/video.dart';
+import 'package:flutter_playout_example/hls/getManifestLanguages.dart';
 
-class VideoPlayout extends StatelessWidget with PlayerObserver {
+class VideoPlayout extends StatefulWidget {
   final PlayerState desiredState;
   final bool showPlayerControls;
 
@@ -11,26 +16,75 @@ class VideoPlayout extends StatelessWidget with PlayerObserver {
       : super(key: key);
 
   @override
+  _VideoPlayoutState createState() => _VideoPlayoutState();
+}
+
+class _VideoPlayoutState extends State<VideoPlayout>
+    with PlayerObserver, MultiAudioSupport {
+  final String _url = null;
+  List<HLSManifestLanguage> _hlsLanguages = List<HLSManifestLanguage>();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, _getHLSManifestLanguages);
+  }
+
+  Future<void> _getHLSManifestLanguages() async {
+    if (!Platform.isIOS && _url != null && _url.isNotEmpty) {
+      _hlsLanguages = await getManifestLanguages(_url);
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Video(
-          autoPlay: true,
-          showControls: showPlayerControls,
-          title: "MTA International",
-          subtitle: "Reaching The Corners Of The Earth",
-          isLiveStream: true,
-          url: null,
-          onViewCreated: _onViewCreated,
-          desiredState: desiredState,
-        ),
+      child: Column(
+        children: <Widget>[
+          /* player */
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Video(
+              autoPlay: true,
+              showControls: widget.showPlayerControls,
+              title: "MTA International",
+              subtitle: "Reaching The Corners Of The Earth",
+              isLiveStream: true,
+              url: _url,
+              onViewCreated: _onViewCreated,
+              desiredState: widget.desiredState,
+            ),
+          ),
+          /* multi language menu */
+          _hlsLanguages.length < 2 && !Platform.isIOS
+              ? Container()
+              : Container(
+                  child: Row(
+                    children: _hlsLanguages
+                        .map((e) => MaterialButton(
+                              child: Text(
+                                e.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .button
+                                    .copyWith(color: Colors.white),
+                              ),
+                              onPressed: () {
+                                setPreferredAudioLanguage(e.code);
+                              },
+                            ))
+                        .toList(),
+                  ),
+                ),
+        ],
       ),
     );
   }
 
   void _onViewCreated(int viewId) {
     listenForVideoPlayerEvents(viewId);
+    enableMultiAudioSupport(viewId);
   }
 
   @override

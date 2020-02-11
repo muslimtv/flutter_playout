@@ -1,3 +1,7 @@
+## 1.0.26 [February 11, 2020]
+
+* Added support for HLS multi-audio for Android
+
 ## 1.0.25 [February 7, 2020]
 
 * Fixed a bug where audio service wasn't being destroyed with player
