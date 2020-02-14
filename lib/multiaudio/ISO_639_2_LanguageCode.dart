@@ -16,7 +16,7 @@ class ISO_639_2_LanguageCode {
       case "ady":
         return HLSManifestLanguage(code, "Adyghe");
       case "afa":
-        return HLSManifestLanguage(code, "Afro-Asiatic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Afro-Asiatic Languages");
       case "afh":
         return HLSManifestLanguage(code, "Afrihili");
       case "afr":
@@ -34,19 +34,19 @@ class ISO_639_2_LanguageCode {
       case "ale":
         return HLSManifestLanguage(code, "Aleut");
       case "alg":
-        return HLSManifestLanguage(code, "Algonquian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Algonquian Languages");
       case "alt":
         return HLSManifestLanguage(code, "Southern Altai");
       case "amh":
         return HLSManifestLanguage(code, "Amharic");
       case "ang":
-        return HLSManifestLanguage(code, "English");
+        return HLSManifestLanguage(code, "English", nativeName: "English");
       case "anp":
         return HLSManifestLanguage(code, "Angika");
       case "apa":
-        return HLSManifestLanguage(code, "Apache HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Apache Languages");
       case "ara":
-        return HLSManifestLanguage(code, "Arabic");
+        return HLSManifestLanguage(code, "Arabic", nativeName: "العربية");
       case "arc":
         return HLSManifestLanguage(code, "Official Aramaic");
       case "arg":
@@ -60,7 +60,7 @@ class ISO_639_2_LanguageCode {
       case "arp":
         return HLSManifestLanguage(code, "Arapaho");
       case "art":
-        return HLSManifestLanguage(code, "Artificial HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Artificial Languages");
       case "arw":
         return HLSManifestLanguage(code, "Arawak");
       case "asm":
@@ -68,9 +68,9 @@ class ISO_639_2_LanguageCode {
       case "ast":
         return HLSManifestLanguage(code, "Asturleonese");
       case "ath":
-        return HLSManifestLanguage(code, "Athapascan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Athapascan Languages");
       case "aus":
-        return HLSManifestLanguage(code, "Australian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Australian Languages");
       case "ava":
         return HLSManifestLanguage(code, "Avaric");
       case "ave":
@@ -82,9 +82,9 @@ class ISO_639_2_LanguageCode {
       case "aze":
         return HLSManifestLanguage(code, "Azerbaijani");
       case "bad":
-        return HLSManifestLanguage(code, "Banda HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Banda Languages");
       case "bai":
-        return HLSManifestLanguage(code, "Bamileke HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Bamileke Languages");
       case "bak":
         return HLSManifestLanguage(code, "Bashkir");
       case "bal":
@@ -100,7 +100,7 @@ class ISO_639_2_LanguageCode {
       case "bas":
         return HLSManifestLanguage(code, "Basa");
       case "bat":
-        return HLSManifestLanguage(code, "Baltic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Baltic Languages");
       case "bej":
         return HLSManifestLanguage(code, "Beja");
       case "bel":
@@ -108,13 +108,13 @@ class ISO_639_2_LanguageCode {
       case "bem":
         return HLSManifestLanguage(code, "Bemba");
       case "ben":
-        return HLSManifestLanguage(code, "Bengali");
+        return HLSManifestLanguage(code, "Bengali", nativeName: "বাংলা");
       case "ber":
-        return HLSManifestLanguage(code, "Berber HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Berber Languages");
       case "bho":
         return HLSManifestLanguage(code, "Bhojpuri");
       case "bih":
-        return HLSManifestLanguage(code, "Bihari HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Bihari Languages");
       case "bik":
         return HLSManifestLanguage(code, "Bikol");
       case "bin":
@@ -124,7 +124,7 @@ class ISO_639_2_LanguageCode {
       case "bla":
         return HLSManifestLanguage(code, "Siksika");
       case "bnt":
-        return HLSManifestLanguage(code, "Bantu HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Bantu Languages");
       case "tib":
         return HLSManifestLanguage(code, "Tibetan");
       case "bod":
@@ -136,7 +136,7 @@ class ISO_639_2_LanguageCode {
       case "bre":
         return HLSManifestLanguage(code, "Breton");
       case "btk":
-        return HLSManifestLanguage(code, "Batak HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Batak Languages");
       case "bua":
         return HLSManifestLanguage(code, "Buriat");
       case "bug":
@@ -152,18 +152,17 @@ class ISO_639_2_LanguageCode {
       case "cad":
         return HLSManifestLanguage(code, "Caddo");
       case "cai":
-        return HLSManifestLanguage(
-            code, "Central American Indian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Central American Indian Languages");
       case "car":
         return HLSManifestLanguage(code, "Galibi Carib");
       case "cat":
         return HLSManifestLanguage(code, "Catalan");
       case "cau":
-        return HLSManifestLanguage(code, "Caucasian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Caucasian Languages");
       case "ceb":
         return HLSManifestLanguage(code, "Cebuano");
       case "cel":
-        return HLSManifestLanguage(code, "Celtic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Celtic Languages");
       case "cze":
         return HLSManifestLanguage(code, "Czech");
       case "ces":
@@ -199,7 +198,7 @@ class ISO_639_2_LanguageCode {
       case "chy":
         return HLSManifestLanguage(code, "Cheyenne");
       case "cmc":
-        return HLSManifestLanguage(code, "Chamic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Chamic Languages");
       case "cnr":
         return HLSManifestLanguage(code, "Montenegrin");
       case "cop":
@@ -224,7 +223,7 @@ class ISO_639_2_LanguageCode {
       case "csb":
         return HLSManifestLanguage(code, "Kashubian");
       case "cus":
-        return HLSManifestLanguage(code, "Cushitic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Cushitic Languages");
       case "wel":
         return HLSManifestLanguage(code, "Welsh");
       case "cym":
@@ -236,15 +235,15 @@ class ISO_639_2_LanguageCode {
       case "dar":
         return HLSManifestLanguage(code, "Dargwa");
       case "day":
-        return HLSManifestLanguage(code, "Land Dayak HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Land Dayak Languages");
       case "del":
         return HLSManifestLanguage(code, "Delaware");
       case "den":
         return HLSManifestLanguage(code, "Slave (Athapascan)");
       case "ger":
-        return HLSManifestLanguage(code, "German");
+        return HLSManifestLanguage(code, "German", nativeName: "Deutsch");
       case "deu":
-        return HLSManifestLanguage(code, "German");
+        return HLSManifestLanguage(code, "German", nativeName: "Deutsch");
       case "dgr":
         return HLSManifestLanguage(code, "Dogrib");
       case "din":
@@ -254,7 +253,7 @@ class ISO_639_2_LanguageCode {
       case "doi":
         return HLSManifestLanguage(code, "Dogri");
       case "dra":
-        return HLSManifestLanguage(code, "Dravidian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Dravidian Languages");
       case "dsb":
         return HLSManifestLanguage(code, "Lower Sorbian");
       case "dua":
@@ -314,17 +313,17 @@ class ISO_639_2_LanguageCode {
       case "fin":
         return HLSManifestLanguage(code, "Finnish");
       case "flu":
-        return HLSManifestLanguage(code, "	Finno-Ugrian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "	Finno-Ugrian Languages");
       case "fon":
         return HLSManifestLanguage(code, "Fon");
       case "fre":
-        return HLSManifestLanguage(code, "French");
+        return HLSManifestLanguage(code, "French", nativeName: "français");
       case "fra":
-        return HLSManifestLanguage(code, "French");
+        return HLSManifestLanguage(code, "French", nativeName: "français");
       case "frm":
-        return HLSManifestLanguage(code, "French");
+        return HLSManifestLanguage(code, "French", nativeName: "français");
       case "fro":
-        return HLSManifestLanguage(code, "French");
+        return HLSManifestLanguage(code, "French", nativeName: "français");
       case "frr":
         return HLSManifestLanguage(code, "Northern Frisian");
       case "frs":
@@ -342,7 +341,7 @@ class ISO_639_2_LanguageCode {
       case "gba":
         return HLSManifestLanguage(code, "Gbaya");
       case "gem":
-        return HLSManifestLanguage(code, "Germanic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Germanic Languages");
       case "geo":
         return HLSManifestLanguage(code, "Georgian");
       case "kat":
@@ -396,7 +395,7 @@ class ISO_639_2_LanguageCode {
       case "hil":
         return HLSManifestLanguage(code, "Hiligaynon");
       case "him":
-        return HLSManifestLanguage(code, "Himachali HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Himachali Languages");
       case "hin":
         return HLSManifestLanguage(code, "Hindi");
       case "hit":
@@ -430,7 +429,7 @@ class ISO_639_2_LanguageCode {
       case "iii":
         return HLSManifestLanguage(code, "Sichuan Yi");
       case "ijo":
-        return HLSManifestLanguage(code, "Ijo HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Ijo Languages");
       case "iku":
         return HLSManifestLanguage(code, "Inuktitut");
       case "ile":
@@ -440,7 +439,7 @@ class ISO_639_2_LanguageCode {
       case "ina":
         return HLSManifestLanguage(code, "Interlingua");
       case "inc":
-        return HLSManifestLanguage(code, "Indic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Indic Languages");
       case "ind":
         return HLSManifestLanguage(code, "Indonesian");
       case "ine":
@@ -450,9 +449,9 @@ class ISO_639_2_LanguageCode {
       case "ipk":
         return HLSManifestLanguage(code, "Inupiaq");
       case "ira":
-        return HLSManifestLanguage(code, "Iranian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Iranian Languages");
       case "iro":
-        return HLSManifestLanguage(code, "Iroquoian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Iroquoian Languages");
       case "ita":
         return HLSManifestLanguage(code, "Italian");
       case "jav":
@@ -478,7 +477,7 @@ class ISO_639_2_LanguageCode {
       case "kan":
         return HLSManifestLanguage(code, "Kannada");
       case "kar":
-        return HLSManifestLanguage(code, "Karen HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Karen Languages");
       case "kas":
         return HLSManifestLanguage(code, "Kashmiri");
       case "kau":
@@ -492,7 +491,7 @@ class ISO_639_2_LanguageCode {
       case "kha":
         return HLSManifestLanguage(code, "Khasi");
       case "khi":
-        return HLSManifestLanguage(code, "Khoisan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Khoisan Languages");
       case "khm":
         return HLSManifestLanguage(code, "Central Khmer");
       case "kho":
@@ -522,7 +521,7 @@ class ISO_639_2_LanguageCode {
       case "krl":
         return HLSManifestLanguage(code, "Karelian");
       case "kro":
-        return HLSManifestLanguage(code, "Kru HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Kru Languages");
       case "kru":
         return HLSManifestLanguage(code, "Kurukh");
       case "kua":
@@ -596,7 +595,7 @@ class ISO_639_2_LanguageCode {
       case "mri":
         return HLSManifestLanguage(code, "Maori");
       case "map":
-        return HLSManifestLanguage(code, "Austronesian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Austronesian Languages");
       case "mar":
         return HLSManifestLanguage(code, "Marathi");
       case "mas":
@@ -618,13 +617,13 @@ class ISO_639_2_LanguageCode {
       case "min":
         return HLSManifestLanguage(code, "Minangkabau");
       case "mis":
-        return HLSManifestLanguage(code, "Uncoded HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Uncoded Languages");
       case "mac":
         return HLSManifestLanguage(code, "Macedonian");
       case "mkd":
         return HLSManifestLanguage(code, "Macedonian");
       case "mkh":
-        return HLSManifestLanguage(code, "Mon-Khmer HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Mon-Khmer Languages");
       case "mlg":
         return HLSManifestLanguage(code, "Malagasy");
       case "mlt":
@@ -634,7 +633,7 @@ class ISO_639_2_LanguageCode {
       case "mni":
         return HLSManifestLanguage(code, "Manipuri");
       case "mno":
-        return HLSManifestLanguage(code, "Manobo HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Manobo Languages");
       case "moh":
         return HLSManifestLanguage(code, "Mohawk");
       case "mon":
@@ -644,7 +643,7 @@ class ISO_639_2_LanguageCode {
       case "mul":
         return HLSManifestLanguage(code, "Original");
       case "mun":
-        return HLSManifestLanguage(code, "Munda HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Munda Languages");
       case "mus":
         return HLSManifestLanguage(code, "Creek");
       case "mwl":
@@ -652,14 +651,13 @@ class ISO_639_2_LanguageCode {
       case "mwr":
         return HLSManifestLanguage(code, "Marwari");
       case "myn":
-        return HLSManifestLanguage(code, "Mayan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Mayan Languages");
       case "myv":
         return HLSManifestLanguage(code, "Erzya");
       case "nah":
-        return HLSManifestLanguage(code, "Nahuatl HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Nahuatl Languages");
       case "nai":
-        return HLSManifestLanguage(
-            code, "North American Indian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "North American Indian Languages");
       case "nap":
         return HLSManifestLanguage(code, "Neapolitan");
       case "nau":
@@ -681,8 +679,7 @@ class ISO_639_2_LanguageCode {
       case "nia":
         return HLSManifestLanguage(code, "Nias");
       case "nic":
-        return HLSManifestLanguage(
-            code, "Niger-Kordofanian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Niger-Kordofanian Languages");
       case "niu":
         return HLSManifestLanguage(code, "Niuean");
       case "nno":
@@ -700,7 +697,7 @@ class ISO_639_2_LanguageCode {
       case "nso":
         return HLSManifestLanguage(code, "Pedi");
       case "nub":
-        return HLSManifestLanguage(code, "Nubian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Nubian Languages");
       case "nwc":
         return HLSManifestLanguage(code, "Classical Newari");
       case "nya":
@@ -728,9 +725,9 @@ class ISO_639_2_LanguageCode {
       case "ota":
         return HLSManifestLanguage(code, "Turkish, Ottoman");
       case "oto":
-        return HLSManifestLanguage(code, "Otomian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Otomian Languages");
       case "paa":
-        return HLSManifestLanguage(code, "Papuan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Papuan Languages");
       case "pag":
         return HLSManifestLanguage(code, "Pangasinan");
       case "pal":
@@ -746,7 +743,7 @@ class ISO_639_2_LanguageCode {
       case "peo":
         return HLSManifestLanguage(code, "Persian, Old");
       case "phi":
-        return HLSManifestLanguage(code, "Philippine HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Philippine Languages");
       case "phn":
         return HLSManifestLanguage(code, "Phoenician");
       case "pli":
@@ -758,7 +755,7 @@ class ISO_639_2_LanguageCode {
       case "por":
         return HLSManifestLanguage(code, "Portuguese");
       case "pra":
-        return HLSManifestLanguage(code, "Prakrit HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Prakrit Languages");
       case "pro":
         return HLSManifestLanguage(code, "Provençal, Old");
       case "pus":
@@ -772,7 +769,7 @@ class ISO_639_2_LanguageCode {
       case "rar":
         return HLSManifestLanguage(code, "Rarotongan");
       case "roa":
-        return HLSManifestLanguage(code, "Romance HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Romance Languages");
       case "roh":
         return HLSManifestLanguage(code, "Romansh");
       case "rom":
@@ -794,10 +791,9 @@ class ISO_639_2_LanguageCode {
       case "sah":
         return HLSManifestLanguage(code, "Yakut");
       case "sai":
-        return HLSManifestLanguage(
-            code, "South American Indian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "South American Indian Languages");
       case "sal":
-        return HLSManifestLanguage(code, "Salishan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Salishan Languages");
       case "sam":
         return HLSManifestLanguage(code, "Samaritan Aramaic");
       case "san":
@@ -813,11 +809,11 @@ class ISO_639_2_LanguageCode {
       case "sel":
         return HLSManifestLanguage(code, "Selkup");
       case "sem":
-        return HLSManifestLanguage(code, "Semitic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Semitic Languages");
       case "sga":
         return HLSManifestLanguage(code, "Irish, Old");
       case "sgn":
-        return HLSManifestLanguage(code, "Sign HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Sign Languages");
       case "shn":
         return HLSManifestLanguage(code, "Shan");
       case "sid":
@@ -825,11 +821,11 @@ class ISO_639_2_LanguageCode {
       case "sin":
         return HLSManifestLanguage(code, "Sinhala");
       case "sio":
-        return HLSManifestLanguage(code, "Siouan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Siouan Languages");
       case "sit":
-        return HLSManifestLanguage(code, "Sino-Tibetan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Sino-Tibetan Languages");
       case "sla":
-        return HLSManifestLanguage(code, "Slavic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Slavic Languages");
       case "slo":
         return HLSManifestLanguage(code, "Slovak");
       case "slk":
@@ -841,7 +837,7 @@ class ISO_639_2_LanguageCode {
       case "sme":
         return HLSManifestLanguage(code, "Northern Sami");
       case "smi":
-        return HLSManifestLanguage(code, "Sami HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Sami Languages");
       case "smj":
         return HLSManifestLanguage(code, "Lule Sami");
       case "smn":
@@ -861,7 +857,7 @@ class ISO_639_2_LanguageCode {
       case "som":
         return HLSManifestLanguage(code, "Somali");
       case "son":
-        return HLSManifestLanguage(code, "Songhai HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Songhai Languages");
       case "sot":
         return HLSManifestLanguage(code, "Sotho, Southern");
       case "spa":
@@ -875,7 +871,7 @@ class ISO_639_2_LanguageCode {
       case "srr":
         return HLSManifestLanguage(code, "Serer");
       case "ssa":
-        return HLSManifestLanguage(code, "Nilo-Saharan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Nilo-Saharan Languages");
       case "ssw":
         return HLSManifestLanguage(code, "Swati");
       case "suk":
@@ -897,7 +893,7 @@ class ISO_639_2_LanguageCode {
       case "tah":
         return HLSManifestLanguage(code, "Tahitian");
       case "tai":
-        return HLSManifestLanguage(code, "Tai HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Tai Languages");
       case "tam":
         return HLSManifestLanguage(code, "Tamil");
       case "tat":
@@ -947,11 +943,11 @@ class ISO_639_2_LanguageCode {
       case "tum":
         return HLSManifestLanguage(code, "Tumbuka");
       case "tup":
-        return HLSManifestLanguage(code, "Tupi HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Tupi Languages");
       case "tur":
         return HLSManifestLanguage(code, "Turkish");
       case "tut":
-        return HLSManifestLanguage(code, "Altaic HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Altaic Languages");
       case "tvl":
         return HLSManifestLanguage(code, "Tuvalu");
       case "twi":
@@ -969,7 +965,7 @@ class ISO_639_2_LanguageCode {
       case "umb":
         return HLSManifestLanguage(code, "Umbundu");
       case "urd":
-        return HLSManifestLanguage(code, "Urdu");
+        return HLSManifestLanguage(code, "Urdu", nativeName: "اردو");
       case "uzb":
         return HLSManifestLanguage(code, "Uzbek");
       case "vai":
@@ -983,7 +979,7 @@ class ISO_639_2_LanguageCode {
       case "vot":
         return HLSManifestLanguage(code, "Votic");
       case "wak":
-        return HLSManifestLanguage(code, "Wakashan HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Wakashan Languages");
       case "wal":
         return HLSManifestLanguage(code, "Wolaitta");
       case "war":
@@ -991,7 +987,7 @@ class ISO_639_2_LanguageCode {
       case "was":
         return HLSManifestLanguage(code, "Washo");
       case "wen":
-        return HLSManifestLanguage(code, "Sorbian HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Sorbian Languages");
       case "wln":
         return HLSManifestLanguage(code, "Walloon");
       case "wol":
@@ -1009,7 +1005,7 @@ class ISO_639_2_LanguageCode {
       case "yor":
         return HLSManifestLanguage(code, "Yoruba");
       case "ypk":
-        return HLSManifestLanguage(code, "Yupik HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Yupik Languages");
       case "zap":
         return HLSManifestLanguage(code, "Zapotec");
       case "zbl":
@@ -1021,7 +1017,7 @@ class ISO_639_2_LanguageCode {
       case "zha":
         return HLSManifestLanguage(code, "Zhuang");
       case "znd":
-        return HLSManifestLanguage(code, "Zande HLSManifestLanguages");
+        return HLSManifestLanguage(code, "Zande Languages");
       case "zul":
         return HLSManifestLanguage(code, "Zulu");
       case "zun":

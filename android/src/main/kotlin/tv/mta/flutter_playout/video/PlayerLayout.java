@@ -100,6 +100,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private String preferredAudioLanguage = "mul";
 
+    private long position = 0;
+
     private boolean autoPlay = false;
 
     private boolean showControls = false;
@@ -165,6 +167,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
+            this.position = args.getLong("position");
+
             this.autoPlay = args.getBoolean("autoPlay");
 
             this.showControls = args.getBoolean("showControls");
@@ -207,6 +211,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
+
+        if (this.position >= 0) {
+
+            mPlayerView.seekTo(this.position);
+        }
 
         setUseController(showControls);
 
@@ -254,6 +263,24 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 trackSelector.setParameters(
                         trackSelector.buildUponParameters()
                                 .setPreferredAudioLanguage(languageCode));
+            }
+
+        } catch (Exception e) { /* ignore */ }
+    }
+
+    public void seekTo(Object arguments) {
+        try {
+
+            java.util.HashMap<String, Long> args = (java.util.HashMap<String, Long>) arguments;
+
+            this.position = args.get("position");
+
+            if (this.position >= 0) {
+
+                if (mPlayerView != null) {
+
+                    mPlayerView.seekTo(this.position);
+                }
             }
 
         } catch (Exception e) { /* ignore */ }
