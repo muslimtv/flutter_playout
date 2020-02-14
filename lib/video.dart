@@ -22,6 +22,7 @@ class Video extends StatefulWidget {
   final String url;
   final String title;
   final String subtitle;
+  final String preferredAudioLanguage;
   final bool isLiveStream;
   final Function onViewCreated;
   final PlayerState desiredState;
@@ -33,6 +34,7 @@ class Video extends StatefulWidget {
       this.url,
       this.title = "",
       this.subtitle = "",
+      this.preferredAudioLanguage = "mul",
       this.isLiveStream = false,
       this.onViewCreated,
       this.desiredState = PlayerState.PLAYING})
@@ -73,6 +75,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
           },
           creationParamsCodec: const JSONMessageCodec(),
@@ -100,6 +103,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
           },
           creationParamsCodec: const JSONMessageCodec(),
@@ -136,6 +140,9 @@ class _VideoState extends State<Video> {
     if (oldWidget.showControls != widget.showControls) {
       _onShowControlsFlagChanged();
     }
+    if (oldWidget.preferredAudioLanguage != widget.preferredAudioLanguage) {
+      _onPreferredAudioLanguageChanged();
+    }
     super.didUpdateWidget(oldWidget);
   }
 
@@ -171,6 +178,16 @@ class _VideoState extends State<Video> {
     _methodChannel.invokeMethod("onShowControlsFlagChanged", {
       "showControls": widget.showControls,
     });
+  }
+
+  void _onPreferredAudioLanguageChanged() async {
+    if (_methodChannel != null &&
+        widget.preferredAudioLanguage != null &&
+        widget.preferredAudioLanguage.isNotEmpty &&
+        !Platform.isIOS) {
+      _methodChannel.invokeListMethod(
+          "setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
+    }
   }
 
   void _pausePlayback() async {

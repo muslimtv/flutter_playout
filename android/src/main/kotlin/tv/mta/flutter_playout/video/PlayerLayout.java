@@ -98,6 +98,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private String subtitle = "";
 
+    private String preferredAudioLanguage = "mul";
+
     private boolean autoPlay = false;
 
     private boolean showControls = false;
@@ -161,6 +163,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.subtitle = args.getString("subtitle");
 
+            this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
+
             this.autoPlay = args.getBoolean("autoPlay");
 
             this.showControls = args.getBoolean("showControls");
@@ -195,7 +199,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         trackSelector = new DefaultTrackSelector(context);
 
         trackSelector.setParameters(
-                trackSelector.buildUponParameters().setPreferredAudioLanguage("mul"));
+                trackSelector.buildUponParameters()
+                        .setPreferredAudioLanguage(this.preferredAudioLanguage));
 
         mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
 
@@ -241,6 +246,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
             String languageCode = args.get("code");
+
+            this.preferredAudioLanguage = languageCode;
 
             if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
 

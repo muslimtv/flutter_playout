@@ -50,6 +50,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
               showControls: widget.showPlayerControls,
               title: "MTA International",
               subtitle: "Reaching The Corners Of The Earth",
+              preferredAudioLanguage: "eng",
               isLiveStream: true,
               url: _url,
               onViewCreated: _onViewCreated,

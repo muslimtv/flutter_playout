@@ -1,3 +1,7 @@
+## 1.0.27 [February 14, 2020]
+
+* Added **preferredAudioLanguage** param to Video to set audio language on player init
+
 ## 1.0.26 [February 11, 2020]
 
 * Added support for HLS multi-audio for Android
