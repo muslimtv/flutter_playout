@@ -1,3 +1,7 @@
+## 1.0.29 [February 14, 2020]
+
+* Changed [position] from int to double
+
 ## 1.0.28 [February 14, 2020]
 
 * Added [position] param for Video set set/update seek bar position

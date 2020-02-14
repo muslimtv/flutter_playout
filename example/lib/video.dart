@@ -52,6 +52,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
               subtitle: "Reaching The Corners Of The Earth",
               preferredAudioLanguage: "eng",
               isLiveStream: true,
+              position: 0,
               url: _url,
               onViewCreated: _onViewCreated,
               desiredState: widget.desiredState,

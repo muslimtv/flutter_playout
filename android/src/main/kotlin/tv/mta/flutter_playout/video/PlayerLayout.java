@@ -167,7 +167,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
-            this.position = args.getLong("position");
+            Double pos = args.getDouble("position");
+            if (pos >= 0) {
+                this.position = pos.intValue();
+            }
 
             this.autoPlay = args.getBoolean("autoPlay");
 
@@ -241,49 +244,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         setupMediaSession();
 
         doBindMediaNotificationManagerService();
-    }
-
-    /**
-     * set audio language for player - language must be one of available in HLS manifest
-     * currently playing
-     *
-     * @param arguments
-     */
-    public void setPreferredAudioLanguage(Object arguments) {
-        try {
-
-            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
-
-            String languageCode = args.get("code");
-
-            this.preferredAudioLanguage = languageCode;
-
-            if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
-
-                trackSelector.setParameters(
-                        trackSelector.buildUponParameters()
-                                .setPreferredAudioLanguage(languageCode));
-            }
-
-        } catch (Exception e) { /* ignore */ }
-    }
-
-    public void seekTo(Object arguments) {
-        try {
-
-            java.util.HashMap<String, Long> args = (java.util.HashMap<String, Long>) arguments;
-
-            this.position = args.get("position");
-
-            if (this.position >= 0) {
-
-                if (mPlayerView != null) {
-
-                    mPlayerView.seekTo(this.position);
-                }
-            }
-
-        } catch (Exception e) { /* ignore */ }
     }
 
     private void setupMediaSession() {
@@ -559,6 +519,53 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             }
 
         } catch (Exception e) { /* ignore */ }
+    }
+
+    /**
+     * set audio language for player - language must be one of available in HLS manifest
+     * currently playing
+     *
+     * @param arguments
+     */
+    public void setPreferredAudioLanguage(Object arguments) {
+        try {
+
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
+
+            String languageCode = args.get("code");
+
+            this.preferredAudioLanguage = languageCode;
+
+            if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
+
+                trackSelector.setParameters(
+                        trackSelector.buildUponParameters()
+                                .setPreferredAudioLanguage(languageCode));
+            }
+
+        } catch (Exception e) { /* ignore */ }
+    }
+
+    public void seekTo(Object arguments) {
+        try {
+
+            java.util.HashMap<String, Double> args = (java.util.HashMap<String, Double>) arguments;
+
+            Double pos = args.get("position");
+
+            if (pos >= 0) {
+
+                this.position = pos.intValue();
+
+                if (mPlayerView != null) {
+
+                    mPlayerView.seekTo(this.position);
+                }
+            }
+
+        } catch (Exception e) { /* ignore */
+            System.out.println(e);
+        }
     }
 
     void onDuration() {

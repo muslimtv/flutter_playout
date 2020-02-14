@@ -28,7 +28,7 @@ class Video extends StatefulWidget {
   final String subtitle;
   final String preferredAudioLanguage;
   final bool isLiveStream;
-  final int position;
+  final double position;
   final Function onViewCreated;
   final PlayerState desiredState;
 
@@ -195,14 +195,14 @@ class _VideoState extends State<Video> {
         widget.preferredAudioLanguage != null &&
         widget.preferredAudioLanguage.isNotEmpty &&
         !Platform.isIOS) {
-      _methodChannel.invokeListMethod(
+      _methodChannel.invokeMethod(
           "setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
     }
   }
 
   void _onSeekPositionChanged() async {
     if (_methodChannel != null && !Platform.isIOS) {
-      _methodChannel.invokeListMethod("seekTo", {"position": widget.position});
+      _methodChannel.invokeMethod("seekTo", {"position": widget.position});
     }
   }
 
