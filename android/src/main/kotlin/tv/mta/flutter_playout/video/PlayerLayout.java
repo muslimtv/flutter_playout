@@ -100,7 +100,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private String preferredAudioLanguage = "mul";
 
-    private long position = 0;
+    private long position = -1;
 
     private boolean autoPlay = false;
 
@@ -167,10 +167,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
-            Double pos = args.getDouble("position");
-            if (pos >= 0) {
-                this.position = pos.intValue();
-            }
+            this.position = Double.valueOf(args.getDouble("position")).intValue();
 
             this.autoPlay = args.getBoolean("autoPlay");
 
@@ -563,9 +560,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 }
             }
 
-        } catch (Exception e) { /* ignore */
-            System.out.println(e);
-        }
+        } catch (Exception e) { /* ignore */ }
     }
 
     void onDuration() {

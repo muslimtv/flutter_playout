@@ -1,3 +1,8 @@
+## 1.0.30 [February 15, 2020]
+
+* Fixed an issue causing audio player to re-initialize on widget rebuild even though param 
+values haven't changed
+
 ## 1.0.29 [February 14, 2020]
 
 * Changed [position] from int to double
