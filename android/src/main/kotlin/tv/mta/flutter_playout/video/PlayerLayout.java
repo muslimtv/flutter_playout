@@ -481,13 +481,13 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         try {
 
-            JSONObject args = (JSONObject) arguments;
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
-            this.url = args.getString("url");
+            this.url = args.get("url");
 
-            this.title = args.getString("title");
+            this.title = args.get("title");
 
-            this.subtitle = args.getString("description");
+            this.subtitle = args.get("description");
 
             /* Produces DataSource instances through which media data is loaded. */
             DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
