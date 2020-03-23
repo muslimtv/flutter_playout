@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -228,15 +229,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 "tv.mta/NativeVideoPlayerEventChannel_" + this.viewId,
                 JSONMethodCodec.INSTANCE).setStreamHandler(this);
 
-        /* Produces DataSource instances through which media data is loaded. */
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                Util.getUserAgent(context, "flutter_playout"));
-
-        /* This is the MediaSource representing the media to be played. */
-        MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(this.url));
-
-        mPlayerView.prepare(videoSource);
+        updateMediaSource();
 
         setupMediaSession();
 
@@ -477,6 +470,26 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         handler.post(runnable);
     }
 
+    private void updateMediaSource() {
+        /* Produces DataSource instances through which media data is loaded. */
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
+                Util.getUserAgent(context, "flutter_playout"));
+
+        /* This is the MediaSource representing the media to be played. */
+        MediaSource videoSource;
+        /*
+         * Check for HLS playlist file extension ( .m3u8 or .m3u )
+         * https://tools.ietf.org/html/rfc8216
+         */
+        if(this.url.endsWith(".m3u8") || this.url.endsWith("m3u")) {
+            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+        } else {
+            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+        }
+
+        mPlayerView.prepare(videoSource);
+    }
+
     public void onMediaChanged(Object arguments) {
 
         try {
@@ -489,15 +502,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.subtitle = args.getString("description");
 
-            /* Produces DataSource instances through which media data is loaded. */
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                    Util.getUserAgent(context, "flutter_playout"));
-
-            /* This is the new MediaSource representing the media to be played. */
-            MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(this.url));
-
-            mPlayerView.prepare(videoSource);
+            updateMediaSource();
 
         } catch (Exception e) { /* ignore */ }
     }
