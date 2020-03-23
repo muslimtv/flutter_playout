@@ -1,3 +1,7 @@
+## 1.0.31 [March 23, 2020]
+
+* Merged PR to add progressive video source for Android (https://github.com/muslimtv/flutter_playout/pull/26)
+
 ## 1.0.30 [February 15, 2020]
 
 * Fixed an issue causing audio player to re-initialize on widget rebuild even though param 
