@@ -118,6 +118,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
+        
+        setupPlayer()
     }
     
     /* set Flutter event channel */
@@ -189,9 +191,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         })
     }
     
-    /* create player view */
-    func view() -> UIView {
-        
+    func setupPlayer(){
         if let videoURL = URL(string: self.url.trimmingCharacters(in: .whitespacesAndNewlines)) {
             
             do {
@@ -205,7 +205,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             
             /* not a valid playback asset */
             if (!asset.isPlayable) {
-                return UIView()
+                return
             }
 
             /* Create a new AVPlayerItem with the asset and
@@ -260,7 +260,15 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             let viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
             viewController.addChild(self.playerViewController!)
             
-            /* return player view controller's view */
+        }
+    }
+    
+    /* create player view */
+    func view() -> UIView {
+        
+        if let videoURL = URL(string: self.url.trimmingCharacters(in: .whitespacesAndNewlines)) {
+            
+            
             return self.playerViewController!.view
         }
         
