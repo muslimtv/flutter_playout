@@ -1,3 +1,7 @@
+## 1.0.33 [March 23, 2020]
+
+* Merged PR (https://github.com/muslimtv/flutter_playout/pull/29)
+
 ## 1.0.32 [March 23, 2020]
 
 * Merged PR (https://github.com/muslimtv/flutter_playout/pull/28)
