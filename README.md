@@ -6,7 +6,7 @@ Audio & Video player in Flutter. This plugin provides audio/video playback with 
 support and lock screen controls for both iOS & Android. Also provides player events such as onPlay, 
 onPause, onTime etc. See example for more details.
 
-- Video supports **HLS** and **Progressive Steaming** for both iOS & Android with multi-audio support.
+* Video supports **HLS** and **Progressive Steaming** for both iOS & Android with multi-audio support.
 
 * Audio supports playback from URL only.
 
