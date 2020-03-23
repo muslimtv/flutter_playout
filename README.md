@@ -10,6 +10,11 @@ onPause, onTime etc. See example for more details.
 
 * Audio supports playback from URL only.
 
+### Apps Using flutter_playout
+See below for example of apps using flutter_playout.
+
+1. MTA International ([iOS](https://apps.apple.com/us/app/mta-international/id942619881) - [Android](https://play.google.com/store/apps/details?id=tv.mta.apps.muslimtv))
+
 #### iOS Example
 ||||
 :---: |:---:| :---:
