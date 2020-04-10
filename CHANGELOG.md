@@ -1,3 +1,7 @@
+## 1.0.34 [April 10, 2020]
+
+* fixes [#39](https://github.com/muslimtv/flutter_playout/issues/39)
+
 ## 1.0.33 [March 23, 2020]
 
 * Merged PR (https://github.com/muslimtv/flutter_playout/pull/29)
