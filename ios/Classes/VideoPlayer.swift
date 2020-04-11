@@ -203,24 +203,25 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* Create the asset to play */
             let asset = AVAsset(url: videoURL)
             
-            /* not a valid playback asset */
-            if (!asset.isPlayable) {
-                return
+            if (asset.isPlayable) {
+                /* Create a new AVPlayerItem with the asset and
+                 an array of asset keys to be automatically loaded */
+                let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: requiredAssetKeys)
+                
+                /* setup player */
+                self.player = FluterAVPlayer(playerItem: playerItem)
             }
-
-            /* Create a new AVPlayerItem with the asset and
-             an array of asset keys to be automatically loaded */
-            let playerItem = AVPlayerItem(asset: asset,
-                                      automaticallyLoadedAssetKeys: requiredAssetKeys)
+            else {
+                /* not a valid playback asset */
+                /* setup empty player */
+                self.player = FluterAVPlayer()
+            }
             
             let center = NotificationCenter.default
             
             center.addObserver(self, selector: #selector(onComplete(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.player?.currentItem)
             center.addObserver(self, selector:#selector(onAVPlayerNewErrorLogEntry(_:)), name: .AVPlayerItemNewErrorLogEntry, object: player?.currentItem)
             center.addObserver(self, selector:#selector(onAVPlayerFailedToPlayToEndTime(_:)), name: .AVPlayerItemFailedToPlayToEndTime, object: player?.currentItem)
-            
-            /* setup player */
-            self.player = FluterAVPlayer(playerItem: playerItem)
             
             if #available(iOS 12.0, *) {
                 self.player?.preventsDisplaySleepDuringVideoPlayback = true
@@ -265,15 +266,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     
     /* create player view */
     func view() -> UIView {
-        
-        if let videoURL = URL(string: self.url.trimmingCharacters(in: .whitespacesAndNewlines)) {
-            
-            
-            return self.playerViewController!.view
-        }
-        
-        /* return default view if videoURL isn't valid */
-        return UIView()
+        /* return player view controller's view */
+        return self.playerViewController!.view
     }
     
     private func onMediaChanged() {
@@ -582,3 +576,4 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.playerViewController?.player = self.player
     }
 }
+
