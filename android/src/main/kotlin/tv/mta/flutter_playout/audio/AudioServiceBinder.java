@@ -84,6 +84,8 @@ public class AudioServiceBinder
      */
     private MediaSessionCompat mMediaSessionCompat;
 
+    private PlayerState playerState;
+
     private Context context;
 
     private Activity activity;
@@ -120,8 +122,14 @@ public class AudioServiceBinder
         this.context = context;
     }
 
-    void setActivity(Activity activity) {
+    void onDetachedFromActivity() {
+        this.activity = null;
+        this.cleanPlayerNotification();
+    }
+
+    void onAttachedToActivity(Activity activity) {
         this.activity = activity;
+        updatePlaybackState(this.playerState);
     }
 
     boolean isMediaChanging() {
@@ -206,16 +214,6 @@ public class AudioServiceBinder
             audioPlayer = null;
 
             updatePlaybackState(PlayerState.COMPLETE);
-        }
-    }
-
-    void cleanPlayerNotification() {
-        NotificationManager notificationManager = (NotificationManager)
-                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (notificationManager != null) {
-
-            notificationManager.cancel(NOTIFICATION_ID);
         }
     }
 
@@ -457,7 +455,9 @@ public class AudioServiceBinder
 
     private void updatePlaybackState(PlayerState playerState) {
 
-        if (mMediaSessionCompat == null) return;
+        if (mMediaSessionCompat == null || this.activity == null || playerState == null) return;
+
+        this.playerState = playerState;
 
         PlaybackStateCompat.Builder newPlaybackState = getPlaybackStateBuilder();
 
@@ -574,6 +574,16 @@ public class AudioServiceBinder
         if (notificationManager != null) {
 
             notificationManager.createNotificationChannel(newChannel);
+        }
+    }
+
+    void cleanPlayerNotification() {
+        NotificationManager notificationManager = (NotificationManager)
+                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (notificationManager != null) {
+
+            notificationManager.cancel(NOTIFICATION_ID);
         }
     }
 

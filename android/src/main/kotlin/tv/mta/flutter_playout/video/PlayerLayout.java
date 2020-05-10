@@ -84,6 +84,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private Activity activity;
     private int viewId;
 
+    private PlayerState playerState;
+
     private DefaultTrackSelector trackSelector;
 
     /**
@@ -199,6 +201,16 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         this.eventSink = null;
     }
 
+    public void onDetachedFromActivity() {
+        this.activity = null;
+        cleanPlayerNotification();
+    }
+
+    public void onAttachedToActivity(Activity activity) {
+        this.activity = activity;
+        updatePlaybackState(this.playerState);
+    }
+
     private void initPlayer() {
 
         trackSelector = new DefaultTrackSelector(context);
@@ -279,7 +291,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void updatePlaybackState(PlayerState playerState) {
 
-        if (mMediaSessionCompat == null) return;
+        if (mMediaSessionCompat == null || this.activity == null || playerState == null) return;
+
+        this.playerState = playerState;
 
         PlaybackStateCompat.Builder newPlaybackState = getPlaybackStateBuilder();
 

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.JSONMethodCodec;
@@ -23,6 +24,7 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.view.FlutterNativeView;
 import tv.mta.flutter_playout.MediaNotificationManagerService;
+import tv.mta.flutter_playout.video.PlayerViewFactory;
 
 public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
 
@@ -85,7 +87,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
             /* Cast and assign background service's onBind method returned iBinder object */
             audioServiceBinder = (AudioServiceBinder) iBinder;
 
-            audioServiceBinder.setActivity(activity);
+            audioServiceBinder.onAttachedToActivity(activity);
 
             audioServiceBinder.setContext(context);
 
@@ -134,6 +136,36 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
                 return false;
             }
         });
+    }
+
+    public static AudioPlayer registerWith(FlutterPlugin.FlutterPluginBinding flutterPluginBinding) {
+
+        final AudioPlayer plugin = new AudioPlayer(flutterPluginBinding.getBinaryMessenger(),
+                flutterPluginBinding.getApplicationContext());
+
+        return plugin;
+    }
+
+    public void onReattachedToActivityForConfigChanges(Activity activity) {
+        this.onAttachedToActivity(activity);
+    }
+
+    public void onAttachedToActivity(Activity activity) {
+        this.activity = activity;
+        if (audioServiceBinder != null) {
+            audioServiceBinder.onAttachedToActivity(activity);
+        }
+    }
+
+    public void onDetachedFromActivityForConfigChanges() {
+        this.onDetachedFromActivity();
+    }
+
+    public void onDetachedFromActivity() {
+        this.activity = null;
+        if (audioServiceBinder != null) {
+            audioServiceBinder.onDetachedFromActivity();
+        }
     }
 
     @Override
@@ -421,7 +453,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
         }
     }
 
-    private void onDestroy() {
+    public void onDestroy() {
 
         try {
 

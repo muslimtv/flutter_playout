@@ -68,4 +68,16 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
                 result.notImplemented();
         }
     }
+
+    void onDetachedFromActivity() {
+        if (player != null) {
+            player.onDetachedFromActivity();
+        }
+    }
+
+    void onAttachedToActivity(Activity activity) {
+        if (player != null) {
+            player.onAttachedToActivity(activity);
+        }
+    }
 }
