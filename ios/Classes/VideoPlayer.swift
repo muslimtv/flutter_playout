@@ -10,6 +10,7 @@ import AVFoundation
 import Flutter
 import MediaPlayer
 import AVKit
+import av_malibrary
 
 class VideoPlayerFactory: NSObject, FlutterPlatformViewFactory {
     
@@ -77,6 +78,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     private var isPlaying = false
     private var timeObserverToken:Any?
     
+    private var withAkamaiMediaAnalytics:Bool = false
+    private var akamaiMediaAnalyticsConfigPATH:String = ""
+    private var akamaiMediaAnalyticsLoader:AV_AkamaiMediaAnalytics?
+    private var akamaiMediaAnalyticsCustomData:[String: String]?
+    
     let requiredAssetKeys = [
         "playable",
     ]
@@ -118,6 +124,15 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
+        self.akamaiMediaAnalyticsConfigPATH = parsedData["akamaiMediaAnalyticsConfigPATH"] as! String
+        
+        /* setup Akamai Media Analytics */
+        if (!self.akamaiMediaAnalyticsConfigPATH.isEmpty) {
+            self.withAkamaiMediaAnalytics = true
+            self.akamaiMediaAnalyticsLoader = AV_AkamaiMediaAnalytics(beaconXML: self.akamaiMediaAnalyticsConfigPATH)
+            self.akamaiMediaAnalyticsCustomData = parsedData["akamaiMediaAnalyticsCustomData"] as? [String: String]
+            //TODO: add custom analytics data to AMA instance
+        }
         
         setupPlayer()
     }
@@ -251,8 +266,24 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             setupRemoteTransportControls()
             
             setupNowPlayingInfoPanel()
-           
-            /* start playback if svet to auto play */
+            
+            /* Attach player to Akamai Media Analytics instance */
+            if (self.withAkamaiMediaAnalytics) {
+                self.akamaiMediaAnalyticsCustomData?.forEach({ (k, v) in
+                    if (k == "viewerId") {
+                        self.akamaiMediaAnalyticsLoader?.setViewerId(viewerId: v)
+                    } else if (k == "viewerDiagnosticsId") {
+                        self.akamaiMediaAnalyticsLoader?.setViewerDiagnosticsId(viewerDiagnosticsId: v)
+                    } else if (k == "withDebugLogging") {
+                        self.akamaiMediaAnalyticsLoader?.enableDebugLogging()
+                    } else {
+                        self.akamaiMediaAnalyticsLoader?.setData(key: k, forValue: v)
+                    }
+                })
+                self.akamaiMediaAnalyticsLoader?.setMediaPlayer(player: self.playerViewController!.player!)
+            }
+            
+            /* start playback if set to auto play */
             if (self.autoPlay) {
                 play()
             }
@@ -260,7 +291,6 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* add player view controller to root view controller */
             let viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
             viewController.addChild(self.playerViewController!)
-            
         }
     }
     
@@ -558,6 +588,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         
         self.flutterEventSink = nil
         self.eventChannel?.setStreamHandler(nil)
+        
+        self.akamaiMediaAnalyticsLoader?.resetMediaPlayer()
         
         self.player = nil
     }

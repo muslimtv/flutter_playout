@@ -31,6 +31,8 @@ class Video extends StatefulWidget {
   final double position;
   final Function onViewCreated;
   final PlayerState desiredState;
+  final String akamaiMediaAnalyticsConfigPATH;
+  final Map<String, String> akamaiMediaAnalyticsCustomData;
 
   const Video(
       {Key key,
@@ -43,7 +45,9 @@ class Video extends StatefulWidget {
       this.isLiveStream = false,
       this.position = -1,
       this.onViewCreated,
-      this.desiredState = PlayerState.PLAYING})
+      this.desiredState = PlayerState.PLAYING,
+      this.akamaiMediaAnalyticsConfigPATH = "",
+      this.akamaiMediaAnalyticsCustomData})
       : super(key: key);
 
   @override
@@ -84,6 +88,10 @@ class _VideoState extends State<Video> {
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
+            "akamaiMediaAnalyticsConfigPATH":
+                widget.akamaiMediaAnalyticsConfigPATH,
+            "akamaiMediaAnalyticsCustomData":
+                widget.akamaiMediaAnalyticsCustomData,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -112,6 +120,10 @@ class _VideoState extends State<Video> {
             "subtitle": widget.subtitle ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
+            "akamaiMediaAnalyticsConfigPATH":
+                widget.akamaiMediaAnalyticsConfigPATH,
+            "akamaiMediaAnalyticsCustomData":
+                widget.akamaiMediaAnalyticsCustomData,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {

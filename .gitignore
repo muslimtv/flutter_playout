@@ -21,3 +21,11 @@ build/
 *.ipr
 *.iws
 .idea/
+
+# Akamai Media Analytics library
+android/libs/android_malibrary.aar
+android/libs/exoplayer_AkamaiMediaAnalytics.aar
+example/android/app/libs/android_malibrary.aar
+example/android/app/libs/exoplayer_AkamaiMediaAnalytics.aar
+/example/ios/av_malibrary.framework/
+/example/ios/Flutter/av_malibrary.framework/

@@ -50,3 +50,51 @@ Opt-in to the embedded views preview by adding a boolean property to the app's
 
 Please see example app on how to implement multi audio for Android. On iOS multi audio is 
 provided natively by the AVPlayer.
+
+## Analytics
+
+### Akamai Media Analytics
+In order to use Akamai Media Analytics, please depend on the latest `MA-experimental` version of the plugin. 
+This plugin supports Akamai Media Analytics for the player for both Android and iOS. This
+feature is however optional. If you have the license to use Akamai Media Analytics then
+follow below steps to enable this feature.
+
+#### Android
+
+You should have access to the Akamai documentation for the analytics library. Please download
+version `2.11` (same as the `ExoPlayer` version used in this plugin) of the `ExoPlayerLoader` and 
+analytics library and follow instructions on adding them to your project.
+
+#### iOS
+For iOS the analytics library is embedded within the plugin so no setup required on the native side.
+
+#### Enable Plugin in Dart
+Once done, you can then pass the `akamaiMediaAnalyticsConfigPATH` and `akamaiMediaAnalyticsCustomData` (optional) 
+parameters to the `Video` widget to enable Akamai analytics.
+
+```
+Video(
+  autoPlay: true,
+  showControls: widget.showPlayerControls,
+  title: "MTA International",
+  subtitle: "Reaching The Corners Of The Earth",
+  preferredAudioLanguage: "eng",
+  isLiveStream: true,
+  position: 0,
+  url: _url,
+  onViewCreated: _onViewCreated,
+  desiredState: widget.desiredState,
+  akamaiMediaAnalyticsConfigPATH:
+      "https://akamai.net/config.xml",
+  akamaiMediaAnalyticsCustomData: new AkamaiMediaAnalyticsData()
+      .withTitle("MTA International")
+      .withEventName("vod-debug")
+      .withDeliveryType(DeliveryType.O)
+      .withCategory("My Category")
+      .withSubCategory("My Sub-Category")
+      .withShow("MTA International")
+      .withPlayerId("default")
+      .withDebugLogging()
+      .build(),
+)
+```

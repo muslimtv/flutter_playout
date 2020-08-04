@@ -22,6 +22,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.akamai.android.exoplayer_loader_android.AkamaiExoPlayerLoader;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -30,15 +32,16 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -107,6 +110,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean showControls = false;
 
+    private boolean isAkamaiMediaAnalyticsEnabled = false;
+
+    private AkamaiExoPlayerLoader akamaiExoPlayerLoader;
+
+    private String akamaiMediaAnalyticsConfigPATH;
+
+    private JSONObject akamaiAnalyticsData;
+
     private long mediaDuration = 0L;
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
@@ -174,9 +185,20 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.showControls = args.getBoolean("showControls");
 
+            this.akamaiMediaAnalyticsConfigPATH =
+                    args.getString("akamaiMediaAnalyticsConfigPATH");
+
+            if (this.akamaiMediaAnalyticsConfigPATH != null &&
+                    !this.akamaiMediaAnalyticsConfigPATH.isEmpty()) {
+                this.akamaiAnalyticsData = args.optJSONObject("akamaiMediaAnalyticsCustomData");
+                this.isAkamaiMediaAnalyticsEnabled = true;
+            }
+
             initPlayer();
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            io.flutter.Log.e(TAG, e.getMessage());
+        }
 
         instance = this;
 
@@ -207,11 +229,39 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 trackSelector.buildUponParameters()
                         .setPreferredAudioLanguage(this.preferredAudioLanguage));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
+        mPlayerView = new SimpleExoPlayer.Builder(context, new DefaultRenderersFactory(context))
+                .setTrackSelector(trackSelector).build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
+
+        /* Add Akamai Media Analytics */
+        if (this.isAkamaiMediaAnalyticsEnabled) {
+
+            this.akamaiExoPlayerLoader = new AkamaiExoPlayerLoader(this.context,
+                    akamaiMediaAnalyticsConfigPATH);
+
+            /* Add custom analytics data */
+            if (this.akamaiAnalyticsData != null) {
+                Iterator<String> akamaiAnalyticsDataKeys = this.akamaiAnalyticsData.keys();
+                while (akamaiAnalyticsDataKeys.hasNext()) {
+                    String key = akamaiAnalyticsDataKeys.next();
+                    try {
+                        String value = this.akamaiAnalyticsData.getString(key);
+                        if (key.equals("viewerId")) {
+                            this.akamaiExoPlayerLoader.setViewerId(value);
+                        } else if (key.equals("withDebugLogging")) {
+                            this.akamaiExoPlayerLoader.enableDebugLogging();;
+                        } else {
+                            this.akamaiExoPlayerLoader.setData(key, value);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                }
+            }
+        }
 
         if (this.position >= 0) {
 
@@ -475,6 +525,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
                 Util.getUserAgent(context, "flutter_playout"));
 
+        Uri streamUri = Uri.parse(this.url);
+
         /* This is the MediaSource representing the media to be played. */
         MediaSource videoSource;
         /*
@@ -482,12 +534,18 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
          * https://tools.ietf.org/html/rfc8216
          */
         if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
-            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            videoSource = new HlsMediaSource.Factory(dataSourceFactory).setTag(streamUri).createMediaSource(streamUri);
         } else {
-            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).setTag(streamUri).createMediaSource(streamUri);
         }
 
         mPlayerView.prepare(videoSource);
+
+        /* Attach Akamai Media Analytics instance to player */
+        if (this.isAkamaiMediaAnalyticsEnabled) {
+            this.akamaiExoPlayerLoader.setMediaPlayer(mPlayerView);
+            this.akamaiExoPlayerLoader.setStreamURL(this.url);
+        }
     }
 
     public void onMediaChanged(Object arguments) {

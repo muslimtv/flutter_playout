@@ -1,9 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="tv.mta.flutter_playout_example">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- permissions required for Akamai Media Analytics library -->
+    <!-- 1. Allows library to open network sockets -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 2. Allows library to access information about networks to capture network state of user -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 3. Allows library to access information about Wi-Fi networks for users connected via Wi-Fi -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- 4. Allows library to read phone features in order to create an ID for each user.
+        Note: Defaults to Android ID if permission is not granted. -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- 5. Allows library to report latitude and longitude based on cellLocation using GPS provider -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 6. Allows library to report latitude and longitude based on cellLocation using network provider -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.

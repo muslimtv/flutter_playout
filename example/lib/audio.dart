@@ -255,7 +255,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                         _playbackPositionString(),
                         style: Theme.of(context)
                             .textTheme
-                            .body1
+                            .bodyText2
                             .copyWith(color: Colors.white),
                       ),
                     ),

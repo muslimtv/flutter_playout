@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_playout/multiaudio/HLSManifestLanguage.dart';
-import 'package:flutter_playout/multiaudio/ISO_639_2_LanguageCode.dart';
+import 'package:flutter_playout/multiaudio/LanguageCode.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<HLSManifestLanguage>> getManifestLanguages(
@@ -40,7 +40,7 @@ Future<List<HLSManifestLanguage>> getManifestLanguages(
           .replaceAll("\"", "");
 
       HLSManifestLanguage language =
-          ISO_639_2_LanguageCode.getLanguageByCode(languageCode);
+          LanguageCode.getLanguageByCode(languageCode);
 
       if (uri.contains("/")) {
         language.url = _baseURL + uri;
@@ -56,8 +56,7 @@ Future<List<HLSManifestLanguage>> getManifestLanguages(
   if (_langs.length < 1) {
     var languageCode = "mul";
 
-    HLSManifestLanguage language =
-        ISO_639_2_LanguageCode.getLanguageByCode(languageCode);
+    HLSManifestLanguage language = LanguageCode.getLanguageByCode(languageCode);
 
     manifest.forEach((m) {
       if (m.contains("a-p")) {
