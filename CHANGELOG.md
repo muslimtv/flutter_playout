@@ -1,3 +1,11 @@
+## 1.0.37 [August 4, 2020]
+
+* moved Akamai Media Analytics plugin to a separate branch
+
+## 1.0.36 [July 29, 2020]
+
+* implemented Akamai Media Analytics
+
 ## 1.0.35 [April 18, 2020]
 
 * Merged PR [#41](https://github.com/muslimtv/flutter_playout/pull/41)
