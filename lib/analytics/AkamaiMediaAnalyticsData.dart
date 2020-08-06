@@ -66,11 +66,13 @@ class AkamaiMediaAnalyticsData {
 
   /// Live VOD 24x7
   /// Inferred automatically if not provided.
-  /// Allowed Values ~> O,L
+  /// Allowed Values ~> O,L,T
   AkamaiMediaAnalyticsData withDeliveryType(DeliveryType deliveryType) {
     String dType;
     if (deliveryType == DeliveryType.L) {
       dType = "L";
+    } else if (deliveryType == DeliveryType.T) {
+      dType = "T";
     } else {
       dType = "O";
     }
@@ -91,6 +93,12 @@ class AkamaiMediaAnalyticsData {
     return this;
   }
 
+  /// Use this to add any custom data
+  AkamaiMediaAnalyticsData withCustomData(String key, String value) {
+    _customData.putIfAbsent(key, () => value);
+    return this;
+  }
+
   /// Enable debug logging
   AkamaiMediaAnalyticsData withDebugLogging() {
     _customData.putIfAbsent("withDebugLogging", () => "true");
@@ -102,4 +110,13 @@ class AkamaiMediaAnalyticsData {
   }
 }
 
-enum DeliveryType { O, L }
+enum DeliveryType {
+  /// VoD
+  O,
+
+  /// Live
+  L,
+
+  /// 24x7
+  T
+}
