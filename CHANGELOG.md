@@ -1,3 +1,7 @@
+## 1.0.39-MA-experimental [August 7, 2020]
+
+* embedded Media Analytics for Android libraries with the plugin
+
 ## 1.0.38-MA-experimental [August 6, 2020]
 
 * added ability to add custom data to Akamai Media Analytics
