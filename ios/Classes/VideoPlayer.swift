@@ -71,6 +71,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var subtitle:String = ""
     var isLiveStream:Bool = false
     var showControls:Bool = false
+    var position:Double = 0.0
 
     private var mediaDuration = 0.0
     
@@ -118,7 +119,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
-        
+        self.position = parsedData["position"] as! Double
+
         setupPlayer()
     }
     
@@ -151,9 +153,21 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.subtitle = parsedData["subtitle"] as! String
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
                 self.showControls = parsedData["showControls"] as! Bool
+                self.position = parsedData["position"] as! Double
 
                 self.onMediaChanged()
                 
+                result(true)
+            }
+
+            if ("seekTo" == call.method) {
+                /* data as JSON */
+                let parsedData = call.arguments as! [String: Any]
+
+                self.position = parsedData["position"] as! Double
+
+                self.player?.seek(to: CMTime(seconds: self.position, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+
                 result(true)
             }
                 
