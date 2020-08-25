@@ -215,7 +215,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         if (this.position >= 0) {
 
-            mPlayerView.seekTo(this.position);
+            mPlayerView.seekTo(this.position * 1000);
         }
 
         setUseController(showControls);
@@ -561,7 +561,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 if (mPlayerView != null) {
 
-                    mPlayerView.seekTo(this.position);
+                    mPlayerView.seekTo(this.position * 1000);
                 }
             }
 
