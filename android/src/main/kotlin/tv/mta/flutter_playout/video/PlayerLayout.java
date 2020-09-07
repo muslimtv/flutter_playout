@@ -559,6 +559,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         }
 
         mPlayerView.prepare(withSubtitles(dataSourceFactory, videoSource));
+
+        /* Attach Akamai Media Analytics instance to player */
+        if (this.isAkamaiMediaAnalyticsEnabled) {
+            this.akamaiExoPlayerLoader.setMediaPlayer(mPlayerView);
+            this.akamaiExoPlayerLoader.setStreamURL(this.url);
+        }
     }
 
     /**
@@ -598,13 +604,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         }
 
         return source;
-        mPlayerView.prepare(videoSource);
-
-        /* Attach Akamai Media Analytics instance to player */
-        if (this.isAkamaiMediaAnalyticsEnabled) {
-            this.akamaiExoPlayerLoader.setMediaPlayer(mPlayerView);
-            this.akamaiExoPlayerLoader.setStreamURL(this.url);
-        }
     }
 
     public void onMediaChanged(Object arguments) {
@@ -660,6 +659,31 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 trackSelector.setParameters(
                         trackSelector.buildUponParameters()
                                 .setPreferredAudioLanguage(languageCode));
+            }
+
+        } catch (Exception e) { /* ignore */ }
+    }
+
+    /**
+     * set text track language for player - language must be one of available in HLS manifest
+     * currently playing or from the array of text tracks passed to player
+     *
+     * @param arguments
+     */
+    public void setPreferredTextLanguage(Object arguments) {
+        try {
+
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
+
+            String languageCode = args.get("code");
+
+            this.preferredTextLanguage = languageCode;
+
+            if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
+
+                trackSelector.setParameters(
+                        trackSelector.buildUponParameters()
+                                .setPreferredTextLanguage(languageCode));
             }
 
         } catch (Exception e) { /* ignore */ }

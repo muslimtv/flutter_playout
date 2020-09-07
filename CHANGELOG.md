@@ -1,3 +1,7 @@
+## 1.0.40-MA-experimental [September 7, 2020]
+
+* added support for text tracks for Android
+
 ## 1.0.39-MA-experimental [August 7, 2020]
 
 * embedded Media Analytics for Android libraries with the plugin

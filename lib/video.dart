@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_playout/player_state.dart';
+import 'package:flutter_playout/textTrack.dart';
 
 /// Video plugin for playing HLS stream using native player. [autoPlay] flag
 /// controls whether to start playback as soon as player is ready. To show/hide
@@ -53,8 +54,7 @@ class Video extends StatefulWidget {
       this.onViewCreated,
       this.desiredState = PlayerState.PLAYING,
       this.akamaiMediaAnalyticsConfigPATH = "",
-      this.akamaiMediaAnalyticsCustomData})
-      this.desiredState = PlayerState.PLAYING,
+      this.akamaiMediaAnalyticsCustomData,
       this.textTracks})
       : super(key: key);
 
@@ -100,7 +100,8 @@ class _VideoState extends State<Video> {
                 widget.akamaiMediaAnalyticsConfigPATH,
             "akamaiMediaAnalyticsCustomData":
                 widget.akamaiMediaAnalyticsCustomData,
-            "textTracks": TextTrack.toJsonFromList(widget.textTracks),
+            "textTracks": TextTrack.toJsonFromList(
+                widget.textTracks ?? List<TextTrack>()),
             "preferredTextLanguage": widget.preferredTextLanguage ?? "",
           },
           creationParamsCodec: const JSONMessageCodec(),
@@ -173,6 +174,9 @@ class _VideoState extends State<Video> {
     if (oldWidget.preferredAudioLanguage != widget.preferredAudioLanguage) {
       _onPreferredAudioLanguageChanged();
     }
+    if (oldWidget.preferredTextLanguage != widget.preferredTextLanguage) {
+      _onPreferredTextLanguageChanged();
+    }
     if (oldWidget.position != widget.position && widget.position >= 0) {
       _onSeekPositionChanged();
     }
@@ -220,6 +224,16 @@ class _VideoState extends State<Video> {
         !Platform.isIOS) {
       _methodChannel.invokeMethod(
           "setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
+    }
+  }
+
+  void _onPreferredTextLanguageChanged() async {
+    if (_methodChannel != null &&
+        widget.preferredTextLanguage != null &&
+        widget.preferredTextLanguage.isNotEmpty &&
+        !Platform.isIOS) {
+      _methodChannel.invokeMethod(
+          "setPreferredTextLanguage", {"code": widget.preferredTextLanguage});
     }
   }
 
