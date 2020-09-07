@@ -56,6 +56,10 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
                 player.setPreferredAudioLanguage(call.arguments);
                 result.success(true);
                 break;
+            case "setPreferredTextLanguage":
+                player.setPreferredTextLanguage(call.arguments);
+                result.success(true);
+                break;
             case "seekTo":
                 player.seekTo(call.arguments);
                 result.success(true);

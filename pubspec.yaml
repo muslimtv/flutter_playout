@@ -1,7 +1,7 @@
 name: flutter_playout
 description: This plugin provides audio/video playback from a URL with background audio support, lock screen
   controls & player events for both iOS and Android.
-version: 1.0.39
+version: 1.0.40
 author: Muslim Television Ahmadiyya International <developer@mta.tv>
 homepage: https://www.mta.tv
 repository: https://github.com/muslimtv/flutter_playout

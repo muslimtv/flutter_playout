@@ -5,7 +5,6 @@ import 'package:flutter_playout/multiaudio/HLSManifestLanguage.dart';
 import 'package:flutter_playout/multiaudio/MultiAudioSupport.dart';
 import 'package:flutter_playout/player_observer.dart';
 import 'package:flutter_playout/player_state.dart';
-import 'package:flutter_playout/textTrack.dart';
 import 'package:flutter_playout/video.dart';
 import 'package:flutter_playout_example/hls/getManifestLanguages.dart';
 
@@ -58,16 +57,6 @@ class _VideoPlayoutState extends State<VideoPlayout>
               onViewCreated: _onViewCreated,
               desiredState: widget.desiredState,
               preferredTextLanguage: "en",
-              textTracks: [
-                TextTrack.from(
-                    mimetype: "text/webvtt",
-                    languageCode: "en",
-                    uri: "https://texttracks.example.com/english.vtt"),
-                TextTrack.from(
-                    mimetype: "text/webvtt",
-                    languageCode: "fr",
-                    uri: "https://texttracks.example.com/french.vtt"),
-              ],
             ),
           ),
           /* multi language menu */

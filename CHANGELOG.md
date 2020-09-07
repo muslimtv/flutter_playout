@@ -1,3 +1,8 @@
+## 1.0.40 [September 7, 2020]
+
+* added support for text tracks for Android
+* added text track change listener to player
+
 ## 1.0.39 [September 7, 2020]
 
 * Added support for text tracks for Android

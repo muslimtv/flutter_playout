@@ -92,7 +92,8 @@ class _VideoState extends State<Video> {
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
-            "textTracks": TextTrack.toJsonFromList(widget.textTracks),
+            "textTracks": TextTrack.toJsonFromList(
+                widget.textTracks ?? List<TextTrack>()),
             "preferredTextLanguage": widget.preferredTextLanguage ?? "",
           },
           creationParamsCodec: const JSONMessageCodec(),
@@ -161,6 +162,9 @@ class _VideoState extends State<Video> {
     if (oldWidget.preferredAudioLanguage != widget.preferredAudioLanguage) {
       _onPreferredAudioLanguageChanged();
     }
+    if (oldWidget.preferredTextLanguage != widget.preferredTextLanguage) {
+      _onPreferredTextLanguageChanged();
+    }
     if (oldWidget.position != widget.position && widget.position >= 0) {
       _onSeekPositionChanged();
     }
@@ -208,6 +212,16 @@ class _VideoState extends State<Video> {
         !Platform.isIOS) {
       _methodChannel.invokeMethod(
           "setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
+    }
+  }
+
+  void _onPreferredTextLanguageChanged() async {
+    if (_methodChannel != null &&
+        widget.preferredTextLanguage != null &&
+        widget.preferredTextLanguage.isNotEmpty &&
+        !Platform.isIOS) {
+      _methodChannel.invokeMethod(
+          "setPreferredTextLanguage", {"code": widget.preferredTextLanguage});
     }
   }
 
