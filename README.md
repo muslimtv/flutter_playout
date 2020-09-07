@@ -3,8 +3,8 @@
 [![pub package](https://img.shields.io/pub/v/flutter_playout.svg)](https://pub.dartlang.org/packages/flutter_playout)
 
 Audio & Video player in Flutter. This plugin provides audio/video playback with background audio 
-support and lock screen controls for both iOS & Android. Also provides player events such as onPlay, 
-onPause, onTime etc. See example for more details.
+support, text tracks and lock screen controls for both iOS & Android. It also provides player events 
+such as onPlay, onPause, onTime etc. See example for more details.
 
 * Video supports **HLS** and **Progressive Steaming** for both iOS & Android with multi-audio support.
 
@@ -14,6 +14,8 @@ onPause, onTime etc. See example for more details.
 See below for example of apps using flutter_playout.
 
 1. MTA International ([iOS](https://apps.apple.com/us/app/mta-international/id942619881) - [Android](https://play.google.com/store/apps/details?id=tv.mta.apps.muslimtv))
+
+Send a pull request to list your app here.
 
 #### iOS Example
 ||||
@@ -48,5 +50,12 @@ Opt-in to the embedded views preview by adding a boolean property to the app's
 
 ## HLS MultiAudio Support
 
-Please see example app on how to implement multi audio for Android. On iOS multi audio is 
+Please see example app on how to implement multi-audio for Android. On iOS multi-audio is 
 provided natively by the AVPlayer.
+
+## Text Tracks Support
+
+To display subtitles, pass in an array of `TextTrack` sources to the `Video` widget. You
+can select a track by providing `preferredTextLanguage` to the `Video` widget with
+a language ISO code for example `en` or `fr`. This setup only applies to Android. For iOS
+please embed text tracks in the HLS manifest.

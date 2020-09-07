@@ -1,3 +1,7 @@
+## 1.0.39 [September 7, 2020]
+
+* Added support for text tracks for Android
+
 ## 1.0.38 [August 25, 2020]
 
 * Merged [PR](https://github.com/muslimtv/flutter_playout/pull/61)
