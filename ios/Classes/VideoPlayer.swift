@@ -72,6 +72,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var subtitle:String = ""
     var isLiveStream:Bool = false
     var showControls:Bool = false
+    var position:Double = 0.0
 
     private var mediaDuration = 0.0
     
@@ -82,7 +83,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     private var akamaiMediaAnalyticsConfigPATH:String = ""
     private var akamaiMediaAnalyticsLoader:AV_AkamaiMediaAnalytics?
     private var akamaiMediaAnalyticsCustomData:[String: String]?
-    
+
     let requiredAssetKeys = [
         "playable",
     ]
@@ -124,8 +125,10 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
+        self.position = parsedData["position"] as! Double
+
         self.akamaiMediaAnalyticsConfigPATH = parsedData["akamaiMediaAnalyticsConfigPATH"] as! String
-        
+
         /* setup Akamai Media Analytics */
         if (!self.akamaiMediaAnalyticsConfigPATH.isEmpty) {
             self.withAkamaiMediaAnalytics = true
@@ -133,7 +136,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             self.akamaiMediaAnalyticsCustomData = parsedData["akamaiMediaAnalyticsCustomData"] as? [String: String]
             //TODO: add custom analytics data to AMA instance
         }
-        
+
         setupPlayer()
     }
     
@@ -166,9 +169,21 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.subtitle = parsedData["subtitle"] as! String
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
                 self.showControls = parsedData["showControls"] as! Bool
+                self.position = parsedData["position"] as! Double
 
                 self.onMediaChanged()
                 
+                result(true)
+            }
+
+            if ("seekTo" == call.method) {
+                /* data as JSON */
+                let parsedData = call.arguments as! [String: Any]
+
+                self.position = parsedData["position"] as! Double
+
+                self.player?.seek(to: CMTime(seconds: self.position, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+
                 result(true)
             }
                 
@@ -266,24 +281,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             setupRemoteTransportControls()
             
             setupNowPlayingInfoPanel()
-            
-            /* Attach player to Akamai Media Analytics instance */
-            if (self.withAkamaiMediaAnalytics) {
-                self.akamaiMediaAnalyticsCustomData?.forEach({ (k, v) in
-                    if (k == "viewerId") {
-                        self.akamaiMediaAnalyticsLoader?.setViewerId(viewerId: v)
-                    } else if (k == "viewerDiagnosticsId") {
-                        self.akamaiMediaAnalyticsLoader?.setViewerDiagnosticsId(viewerDiagnosticsId: v)
-                    } else if (k == "withDebugLogging") {
-                        self.akamaiMediaAnalyticsLoader?.enableDebugLogging()
-                    } else {
-                        self.akamaiMediaAnalyticsLoader?.setData(key: k, forValue: v)
-                    }
-                })
-                self.akamaiMediaAnalyticsLoader?.setMediaPlayer(player: self.playerViewController!.player!)
-            }
-            
-            /* start playback if set to auto play */
+           
+            /* start playback if svet to auto play */
             if (self.autoPlay) {
                 play()
             }
@@ -291,6 +290,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* add player view controller to root view controller */
             let viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
             viewController.addChild(self.playerViewController!)
+            
         }
     }
     
@@ -588,8 +588,6 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         
         self.flutterEventSink = nil
         self.eventChannel?.setStreamHandler(nil)
-        
-        self.akamaiMediaAnalyticsLoader?.resetMediaPlayer()
         
         self.player = nil
     }

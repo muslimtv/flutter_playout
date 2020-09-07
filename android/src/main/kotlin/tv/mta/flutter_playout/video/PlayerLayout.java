@@ -22,21 +22,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.google.android.exoplayer2.C;
 import com.akamai.android.exoplayer_loader_android.AkamaiExoPlayerLoader;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MergingMediaSource;
+import com.google.android.exoplayer2.source.SingleSampleMediaSource;
+import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -104,6 +112,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private String preferredAudioLanguage = "mul";
 
+    private String preferredTextLanguage = "";
+
     private long position = -1;
 
     private boolean autoPlay = false;
@@ -117,6 +127,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private String akamaiMediaAnalyticsConfigPATH;
 
     private JSONObject akamaiAnalyticsData;
+
+    private JSONArray subtitles = null;
 
     private long mediaDuration = 0L;
     /**
@@ -179,6 +191,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
+            this.preferredTextLanguage = args.getString("preferredTextLanguage");
+
             this.position = Double.valueOf(args.getDouble("position")).intValue();
 
             this.autoPlay = args.getBoolean("autoPlay");
@@ -193,6 +207,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 this.akamaiAnalyticsData = args.optJSONObject("akamaiMediaAnalyticsCustomData");
                 this.isAkamaiMediaAnalyticsEnabled = true;
             }
+
+            try {
+                this.subtitles = args.getJSONArray("subtitles");
+            } catch (Exception e) {/* ignore */}
 
             initPlayer();
 
@@ -227,7 +245,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         trackSelector.setParameters(
                 trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguage(this.preferredAudioLanguage));
+                        .setPreferredAudioLanguage(this.preferredAudioLanguage)
+                        .setPreferredTextLanguage(this.preferredTextLanguage));
 
         mPlayerView = new SimpleExoPlayer.Builder(context, new DefaultRenderersFactory(context))
                 .setTrackSelector(trackSelector).build();
@@ -265,7 +284,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         if (this.position >= 0) {
 
-            mPlayerView.seekTo(this.position);
+            mPlayerView.seekTo(this.position * 1000);
         }
 
         setUseController(showControls);
@@ -539,6 +558,46 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).setTag(streamUri).createMediaSource(streamUri);
         }
 
+        mPlayerView.prepare(withSubtitles(dataSourceFactory, videoSource));
+    }
+
+    /**
+     * Adds subtitles to the media source (if provided).
+     *
+     * @param source
+     * @return MediaSource with subtitles source included
+     */
+    private MediaSource withSubtitles(DataSource.Factory dataSourceFactory, MediaSource source) {
+
+        if (this.subtitles != null && this.subtitles.length() > 0) {
+
+            for (int i = 0; i < this.subtitles.length(); i++) {
+
+                try {
+
+                    JSONObject subtitle = this.subtitles.getJSONObject(i);
+
+                    Format subtitleFormat =
+                            Format.createTextSampleFormat(
+                                    /* id= */ null,
+                                    subtitle.getString("mimeType"),
+                                    C.SELECTION_FLAG_DEFAULT,
+                                    subtitle.getString("languageCode"));
+
+                    MediaSource subtitleMediaSource =
+                            new SingleSampleMediaSource.Factory(dataSourceFactory)
+                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
+                                            subtitleFormat, C.TIME_UNSET);
+
+                    source = new MergingMediaSource(source, subtitleMediaSource);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return source;
         mPlayerView.prepare(videoSource);
 
         /* Attach Akamai Media Analytics instance to player */
@@ -619,7 +678,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 if (mPlayerView != null) {
 
-                    mPlayerView.seekTo(this.position);
+                    mPlayerView.seekTo(this.position * 1000);
                 }
             }
 

@@ -19,7 +19,10 @@ import 'package:flutter_playout/player_state.dart';
 /// rebuild will make player seek to new position. Use [onViewCreated] callback
 /// to get notified once the underlying [PlatformView] is setup. The
 /// [desiredState] enum can be used to control play/pause. If the value change,
-/// the widget will make sure that player is in sync with the new state.
+/// the widget will make sure that player is in sync with the new state. Use
+/// [textTracks] to pass a list of [TextTrack] sources to the player (optional).
+/// This is only used for Android ExoPlayer. For iOS please embed text tracks
+/// into the HLS manifest, no more configuration required on iOS side.
 class Video extends StatefulWidget {
   final bool autoPlay;
   final bool showControls;
@@ -27,6 +30,8 @@ class Video extends StatefulWidget {
   final String title;
   final String subtitle;
   final String preferredAudioLanguage;
+  final List<TextTrack> textTracks;
+  final String preferredTextLanguage;
   final bool isLiveStream;
   final double position;
   final Function onViewCreated;
@@ -42,12 +47,15 @@ class Video extends StatefulWidget {
       this.title = "",
       this.subtitle = "",
       this.preferredAudioLanguage = "mul",
+      this.preferredTextLanguage = "",
       this.isLiveStream = false,
       this.position = -1,
       this.onViewCreated,
       this.desiredState = PlayerState.PLAYING,
       this.akamaiMediaAnalyticsConfigPATH = "",
       this.akamaiMediaAnalyticsCustomData})
+      this.desiredState = PlayerState.PLAYING,
+      this.textTracks})
       : super(key: key);
 
   @override
@@ -92,6 +100,8 @@ class _VideoState extends State<Video> {
                 widget.akamaiMediaAnalyticsConfigPATH,
             "akamaiMediaAnalyticsCustomData":
                 widget.akamaiMediaAnalyticsCustomData,
+            "textTracks": TextTrack.toJsonFromList(widget.textTracks),
+            "preferredTextLanguage": widget.preferredTextLanguage ?? "",
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -124,6 +134,7 @@ class _VideoState extends State<Video> {
                 widget.akamaiMediaAnalyticsConfigPATH,
             "akamaiMediaAnalyticsCustomData":
                 widget.akamaiMediaAnalyticsCustomData,
+            "position": widget.position,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -213,7 +224,7 @@ class _VideoState extends State<Video> {
   }
 
   void _onSeekPositionChanged() async {
-    if (_methodChannel != null && !Platform.isIOS) {
+    if (_methodChannel != null) {
       _methodChannel.invokeMethod("seekTo", {"position": widget.position});
     }
   }
