@@ -218,7 +218,6 @@ class _VideoState extends State<Video> {
   void _onPreferredTextLanguageChanged() async {
     if (_methodChannel != null &&
         widget.preferredTextLanguage != null &&
-        widget.preferredTextLanguage.isNotEmpty &&
         !Platform.isIOS) {
       _methodChannel.invokeMethod(
           "setPreferredTextLanguage", {"code": widget.preferredTextLanguage});

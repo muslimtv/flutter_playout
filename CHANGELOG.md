@@ -1,3 +1,7 @@
+## 1.0.41 [September 13, 2020]
+
+* removed isEmpty check when setting text track language
+
 ## 1.0.40 [September 7, 2020]
 
 * added support for text tracks for Android
