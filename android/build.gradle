@@ -50,5 +50,4 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.media:media:1.2.0"
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-    api "io.flutter:flutter_embedding_debug:1.0.0-fee6f9e5333472a1931d00f521252901d60e0c76"
 }
