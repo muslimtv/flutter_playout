@@ -255,6 +255,7 @@ class _VideoState extends State<Video> {
           "subtitle": widget.subtitle,
           "isLiveStream": widget.isLiveStream,
           "showControls": widget.showControls,
+          "position": widget.position,
         });
       }
     }
