@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -11,6 +13,12 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.view.KeyEvent;
 
 import androidx.core.app.NotificationCompat;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class PlayerNotificationUtil  {
 
@@ -38,9 +46,10 @@ public class PlayerNotificationUtil  {
 
         builder.setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
-                .setLargeIcon(description.getIconBitmap())
-                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setMediaSession(mediaSession.getSessionToken()))
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowCancelButton(true).setCancelButtonIntent(getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP)))
+                .setColorized(true)
+                .setAutoCancel(true)
+                .setLargeIcon(mediaMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ART))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(smallIcon)
                 .setDeleteIntent(getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP));

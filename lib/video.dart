@@ -26,6 +26,7 @@ class Video extends StatefulWidget {
   final String url;
   final String title;
   final String subtitle;
+  final String image;
   final String preferredAudioLanguage;
   final bool isLiveStream;
   final double position;
@@ -39,6 +40,7 @@ class Video extends StatefulWidget {
       this.url,
       this.title = "",
       this.subtitle = "",
+      this.image = "",
       this.preferredAudioLanguage = "mul",
       this.isLiveStream = false,
       this.position = -1,
@@ -81,6 +83,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "image": widget.image ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
@@ -110,6 +113,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "image": widget.image ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
           },
@@ -138,6 +142,7 @@ class _VideoState extends State<Video> {
     if (oldWidget.url != widget.url ||
         oldWidget.title != widget.title ||
         oldWidget.subtitle != widget.subtitle ||
+        oldWidget.image != widget.image ||
         oldWidget.isLiveStream != widget.isLiveStream) {
       _onMediaChanged();
     }
@@ -228,6 +233,7 @@ class _VideoState extends State<Video> {
           "url": widget.url,
           "title": widget.title,
           "subtitle": widget.subtitle,
+          "image": widget.image,
           "isLiveStream": widget.isLiveStream,
           "showControls": widget.showControls,
         });

@@ -8,6 +8,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -19,9 +22,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -30,7 +38,6 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -38,6 +45,8 @@ import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import io.flutter.plugin.common.BinaryMessenger;
@@ -48,6 +57,7 @@ import tv.mta.flutter_playout.MediaNotificationManagerService;
 import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
+
 
 public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventChannel.StreamHandler {
     /**
@@ -98,6 +108,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private String title = "";
 
     private String subtitle = "";
+
+    private String image = "";
 
     private String preferredAudioLanguage = "mul";
 
@@ -174,6 +186,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.showControls = args.getBoolean("showControls");
 
+            this.image = args.getString("image");
+
             initPlayer();
 
         } catch (Exception e) { /* ignore */ }
@@ -245,28 +259,64 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mMediaSessionCompat = new MediaSessionCompat(context,
                 PlayerLayout.class.getSimpleName(), receiver, null);
 
-        mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-                | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
-
         mMediaSessionCompat.setCallback(new MediaSessionCallback());
 
         mMediaSessionCompat.setActive(true);
 
-        setAudioMetadata();
+
+        //Set Atwork
+        setArtwork();
 
         updatePlaybackState(PlayerState.PLAYING);
     }
 
-    private void setAudioMetadata() {
+    private void setAudioMetadata(Bitmap artwork) {
 
-        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
-                .build();
+        Log.d("ARTWORK",artwork==null?"NULL":"OK");
+
+        MediaMetadataCompat metadata;
+        if(artwork == null){
+            metadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
+                    .build();
+        }else{
+            metadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ART,artwork)
+                    .build();
+        }
+
 
         mMediaSessionCompat.setMetadata(metadata);
     }
+
+    private void setArtwork(){
+        if(image!=null){
+
+            Glide.with(this)
+                    .asBitmap()
+                    .load(image)
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            setAudioMetadata(resource);
+                        }
+    
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+    
+                        }
+                    });
+        }else{
+            setAudioMetadata(null);
+        }
+
+    }
+
 
     private PlaybackStateCompat.Builder getPlaybackStateBuilder() {
 
@@ -342,8 +392,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
                 activity, context, mMediaSessionCompat, mNotificationChannelId);
 
+
+
         if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_pause, "Pause",
+            notificationBuilder.addAction(R.drawable.exo_icon_stop, "Stop",
                     PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PAUSE));
         }
 
@@ -377,6 +429,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         newChannel.setDescription("All notifications");
 
         newChannel.setShowBadge(false);
+
 
         newChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
@@ -501,6 +554,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             this.title = args.get("title");
 
             this.subtitle = args.get("description");
+
+            this.image = args.get("image");
 
             updateMediaSource();
 
