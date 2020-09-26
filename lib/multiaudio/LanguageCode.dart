@@ -1,6 +1,7 @@
 import 'HLSManifestLanguage.dart';
 
-class ISO_639_2_LanguageCode {
+/// ISO_639_2
+class LanguageCode {
   static HLSManifestLanguage getLanguageByCode(String code) {
     switch (code) {
       case "aar":

@@ -1,3 +1,49 @@
+## 1.0.40 [September 7, 2020]
+
+* added support for text tracks for Android
+* added text track change listener to player
+
+## 1.0.39 [September 7, 2020]
+
+* Added support for text tracks for Android
+
+## 1.0.38 [August 25, 2020]
+
+* Merged [PR](https://github.com/muslimtv/flutter_playout/pull/61)
+* fixes [#60](https://github.com/muslimtv/flutter_playout/issues/60)
+
+## 1.0.37 [August 4, 2020]
+
+* moved Akamai Media Analytics plugin to a separate branch
+
+## 1.0.36 [July 29, 2020]
+
+* implemented Akamai Media Analytics
+
+## 1.0.35 [April 18, 2020]
+
+* Merged PR [#41](https://github.com/muslimtv/flutter_playout/pull/41)
+
+## 1.0.34 [April 10, 2020]
+
+* fixes [#39](https://github.com/muslimtv/flutter_playout/issues/39)
+
+## 1.0.33 [March 23, 2020]
+
+* Merged PR (https://github.com/muslimtv/flutter_playout/pull/29)
+
+## 1.0.32 [March 23, 2020]
+
+* Merged PR (https://github.com/muslimtv/flutter_playout/pull/28)
+
+* Fixed wrong arguments casting in Android PlayerLayout. It was throwing exception and the change wouldn't happen.
+
+* Fixed crash on iOS when attempting to change media. It was crashing due to force unwrapping a non existing value (showControls).
+
+## 1.0.31 [March 23, 2020]
+
+* Merged PR to add progressive video source for Android (https://github.com/muslimtv/flutter_playout/pull/26)
+
 ## 1.0.30 [February 15, 2020]
 
 * Fixed an issue causing audio player to re-initialize on widget rebuild even though param 

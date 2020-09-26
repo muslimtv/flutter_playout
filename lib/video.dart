@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_playout/player_state.dart';
+import 'package:flutter_playout/textTrack.dart';
 
 /// Video plugin for playing HLS stream using native player. [autoPlay] flag
 /// controls whether to start playback as soon as player is ready. To show/hide
@@ -19,7 +20,10 @@ import 'package:flutter_playout/player_state.dart';
 /// rebuild will make player seek to new position. Use [onViewCreated] callback
 /// to get notified once the underlying [PlatformView] is setup. The
 /// [desiredState] enum can be used to control play/pause. If the value change,
-/// the widget will make sure that player is in sync with the new state.
+/// the widget will make sure that player is in sync with the new state. Use
+/// [textTracks] to pass a list of [TextTrack] sources to the player (optional).
+/// This is only used for Android ExoPlayer. For iOS please embed text tracks
+/// into the HLS manifest, no more configuration required on iOS side.
 class Video extends StatefulWidget {
   final bool autoPlay;
   final bool showControls;
@@ -27,6 +31,8 @@ class Video extends StatefulWidget {
   final String title;
   final String subtitle;
   final String preferredAudioLanguage;
+  final List<TextTrack> textTracks;
+  final String preferredTextLanguage;
   final bool isLiveStream;
   final double position;
   final Function onViewCreated;
@@ -40,10 +46,12 @@ class Video extends StatefulWidget {
       this.title = "",
       this.subtitle = "",
       this.preferredAudioLanguage = "mul",
+      this.preferredTextLanguage = "",
       this.isLiveStream = false,
       this.position = -1,
       this.onViewCreated,
-      this.desiredState = PlayerState.PLAYING})
+      this.desiredState = PlayerState.PLAYING,
+      this.textTracks})
       : super(key: key);
 
   @override
@@ -84,6 +92,9 @@ class _VideoState extends State<Video> {
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
+            "textTracks": TextTrack.toJsonFromList(
+                widget.textTracks ?? List<TextTrack>()),
+            "preferredTextLanguage": widget.preferredTextLanguage ?? "",
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -112,6 +123,7 @@ class _VideoState extends State<Video> {
             "subtitle": widget.subtitle ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
+            "position": widget.position,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -149,6 +161,9 @@ class _VideoState extends State<Video> {
     }
     if (oldWidget.preferredAudioLanguage != widget.preferredAudioLanguage) {
       _onPreferredAudioLanguageChanged();
+    }
+    if (oldWidget.preferredTextLanguage != widget.preferredTextLanguage) {
+      _onPreferredTextLanguageChanged();
     }
     if (oldWidget.position != widget.position && widget.position >= 0) {
       _onSeekPositionChanged();
@@ -200,8 +215,18 @@ class _VideoState extends State<Video> {
     }
   }
 
+  void _onPreferredTextLanguageChanged() async {
+    if (_methodChannel != null &&
+        widget.preferredTextLanguage != null &&
+        widget.preferredTextLanguage.isNotEmpty &&
+        !Platform.isIOS) {
+      _methodChannel.invokeMethod(
+          "setPreferredTextLanguage", {"code": widget.preferredTextLanguage});
+    }
+  }
+
   void _onSeekPositionChanged() async {
-    if (_methodChannel != null && !Platform.isIOS) {
+    if (_methodChannel != null) {
       _methodChannel.invokeMethod("seekTo", {"position": widget.position});
     }
   }
@@ -219,14 +244,19 @@ class _VideoState extends State<Video> {
   }
 
   void _onMediaChanged() {
-    if (widget.url != null && _methodChannel != null) {
-      _methodChannel.invokeMethod("onMediaChanged", {
-        "autoPlay": widget.autoPlay,
-        "url": widget.url,
-        "title": widget.title,
-        "subtitle": widget.subtitle,
-        "isLiveStream": widget.isLiveStream,
-      });
+    if (widget.url != null) {
+      if (_methodChannel == null) {
+        _setupPlayer();
+      } else {
+        _methodChannel.invokeMethod("onMediaChanged", {
+          "autoPlay": widget.autoPlay,
+          "url": widget.url,
+          "title": widget.title,
+          "subtitle": widget.subtitle,
+          "isLiveStream": widget.isLiveStream,
+          "showControls": widget.showControls,
+        });
+      }
     }
   }
 

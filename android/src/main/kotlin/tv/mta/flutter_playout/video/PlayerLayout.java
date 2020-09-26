@@ -22,12 +22,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MergingMediaSource;
+import com.google.android.exoplayer2.source.SingleSampleMediaSource;
+import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -35,6 +42,8 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -100,11 +109,15 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private String preferredAudioLanguage = "mul";
 
+    private String preferredTextLanguage = "";
+
     private long position = -1;
 
     private boolean autoPlay = false;
 
     private boolean showControls = false;
+
+    private JSONArray subtitles = null;
 
     private long mediaDuration = 0L;
     /**
@@ -167,11 +180,17 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
+            this.preferredTextLanguage = args.getString("preferredTextLanguage");
+
             this.position = Double.valueOf(args.getDouble("position")).intValue();
 
             this.autoPlay = args.getBoolean("autoPlay");
 
             this.showControls = args.getBoolean("showControls");
+
+            try {
+                this.subtitles = args.getJSONArray("subtitles");
+            } catch (Exception e) {/* ignore */}
 
             initPlayer();
 
@@ -204,7 +223,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         trackSelector.setParameters(
                 trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguage(this.preferredAudioLanguage));
+                        .setPreferredAudioLanguage(this.preferredAudioLanguage)
+                        .setPreferredTextLanguage(this.preferredTextLanguage));
 
         mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
 
@@ -214,7 +234,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         if (this.position >= 0) {
 
-            mPlayerView.seekTo(this.position);
+            mPlayerView.seekTo(this.position * 1000);
         }
 
         setUseController(showControls);
@@ -228,15 +248,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 "tv.mta/NativeVideoPlayerEventChannel_" + this.viewId,
                 JSONMethodCodec.INSTANCE).setStreamHandler(this);
 
-        /* Produces DataSource instances through which media data is loaded. */
-        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                Util.getUserAgent(context, "flutter_playout"));
-
-        /* This is the MediaSource representing the media to be played. */
-        MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(this.url));
-
-        mPlayerView.prepare(videoSource);
+        updateMediaSource();
 
         setupMediaSession();
 
@@ -477,27 +489,78 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         handler.post(runnable);
     }
 
+    private void updateMediaSource() {
+        /* Produces DataSource instances through which media data is loaded. */
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
+                Util.getUserAgent(context, "flutter_playout"));
+
+        /* This is the MediaSource representing the media to be played. */
+        MediaSource videoSource;
+        /*
+         * Check for HLS playlist file extension ( .m3u8 or .m3u )
+         * https://tools.ietf.org/html/rfc8216
+         */
+        if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
+            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+        } else {
+            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+        }
+
+        mPlayerView.prepare(withSubtitles(dataSourceFactory, videoSource));
+    }
+
+    /**
+     * Adds subtitles to the media source (if provided).
+     *
+     * @param source
+     * @return MediaSource with subtitles source included
+     */
+    private MediaSource withSubtitles(DataSource.Factory dataSourceFactory, MediaSource source) {
+
+        if (this.subtitles != null && this.subtitles.length() > 0) {
+
+            for (int i = 0; i < this.subtitles.length(); i++) {
+
+                try {
+
+                    JSONObject subtitle = this.subtitles.getJSONObject(i);
+
+                    Format subtitleFormat =
+                            Format.createTextSampleFormat(
+                                    /* id= */ null,
+                                    subtitle.getString("mimeType"),
+                                    C.SELECTION_FLAG_DEFAULT,
+                                    subtitle.getString("languageCode"));
+
+                    MediaSource subtitleMediaSource =
+                            new SingleSampleMediaSource.Factory(dataSourceFactory)
+                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
+                                            subtitleFormat, C.TIME_UNSET);
+
+                    source = new MergingMediaSource(source, subtitleMediaSource);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return source;
+    }
+
     public void onMediaChanged(Object arguments) {
 
         try {
 
-            JSONObject args = (JSONObject) arguments;
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
-            this.url = args.getString("url");
+            this.url = args.get("url");
 
-            this.title = args.getString("title");
+            this.title = args.get("title");
 
-            this.subtitle = args.getString("description");
+            this.subtitle = args.get("description");
 
-            /* Produces DataSource instances through which media data is loaded. */
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                    Util.getUserAgent(context, "flutter_playout"));
-
-            /* This is the new MediaSource representing the media to be played. */
-            MediaSource videoSource = new HlsMediaSource.Factory(dataSourceFactory)
-                    .createMediaSource(Uri.parse(this.url));
-
-            mPlayerView.prepare(videoSource);
+            updateMediaSource();
 
         } catch (Exception e) { /* ignore */ }
     }
@@ -543,6 +606,31 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         } catch (Exception e) { /* ignore */ }
     }
 
+    /**
+     * set text track language for player - language must be one of available in HLS manifest
+     * currently playing or from the array of text tracks passed to player
+     *
+     * @param arguments
+     */
+    public void setPreferredTextLanguage(Object arguments) {
+        try {
+
+            java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
+
+            String languageCode = args.get("code");
+
+            this.preferredTextLanguage = languageCode;
+
+            if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
+
+                trackSelector.setParameters(
+                        trackSelector.buildUponParameters()
+                                .setPreferredTextLanguage(languageCode));
+            }
+
+        } catch (Exception e) { /* ignore */ }
+    }
+
     public void seekTo(Object arguments) {
         try {
 
@@ -556,7 +644,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 if (mPlayerView != null) {
 
-                    mPlayerView.seekTo(this.position);
+                    mPlayerView.seekTo(this.position * 1000);
                 }
             }
 

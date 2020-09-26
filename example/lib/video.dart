@@ -56,6 +56,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
               url: _url,
               onViewCreated: _onViewCreated,
               desiredState: widget.desiredState,
+              preferredTextLanguage: "en",
             ),
           ),
           /* multi language menu */
