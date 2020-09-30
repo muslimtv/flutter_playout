@@ -23,6 +23,7 @@ import 'package:flutter_playout/player_state.dart';
 class Video extends StatefulWidget {
   final bool autoPlay;
   final bool showControls;
+  final bool showLog;
   final String url;
   final String title;
   final String subtitle;
@@ -37,6 +38,7 @@ class Video extends StatefulWidget {
       {Key key,
       this.autoPlay = false,
       this.showControls = true,
+      this.showLog = false,
       this.url,
       this.title = "",
       this.subtitle = "",
@@ -80,11 +82,12 @@ class _VideoState extends State<Video> {
           creationParams: {
             "autoPlay": widget.autoPlay,
             "showControls": widget.showControls,
+            "showLog":widget.showLog,
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
             "image": widget.image ?? "",
-            "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
+            "preferredAudioLanguage": widget.preferredAudioLanguage ?? "en",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
           },

@@ -1,3 +1,8 @@
+## 1.0.38 [April 18, 2020]
+
+* Added Image 
+* Log Optional
+
 ## 1.0.35 [April 18, 2020]
 
 * Merged PR [#41](https://github.com/muslimtv/flutter_playout/pull/41)

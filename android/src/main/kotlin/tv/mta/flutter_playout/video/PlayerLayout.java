@@ -119,6 +119,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean showControls = false;
 
+    private boolean showLog = false;
+
     private long mediaDuration = 0L;
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
@@ -185,6 +187,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             this.autoPlay = args.getBoolean("autoPlay");
 
             this.showControls = args.getBoolean("showControls");
+
+            this.showLog = args.getBoolean("showLog");
 
             this.image = args.getString("image");
 
@@ -638,8 +642,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 message.put("name", "onDuration");
 
                 message.put("duration", mediaDuration);
-
-                Log.d(TAG, "onDuration: [duration=" + mediaDuration + "]");
+                if(this.showLog){
+                    Log.d(TAG, "onDuration: [duration=" + mediaDuration + "]");
+                }
+                
                 eventSink.success(message);
             }
 
