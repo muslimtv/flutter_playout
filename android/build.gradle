@@ -1,8 +1,8 @@
 group 'tv.mta.flutter_playout'
-version '1.0.36'
+version '1.0.38'
 
 buildscript {
-    ext.kotlin_version = '1.4.0'
+    ext.kotlin_version = '1.4.10'
     repositories {
         google()
         jcenter()
@@ -50,4 +50,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.media:media:1.2.0"
     implementation 'com.github.bumptech.glide:glide:4.11.0'
+
 }

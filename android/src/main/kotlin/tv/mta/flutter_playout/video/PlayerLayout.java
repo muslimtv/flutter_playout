@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -28,7 +27,6 @@ import androidx.core.app.NotificationCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
@@ -44,9 +42,6 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URL;
 import java.util.HashMap;
 
 import io.flutter.plugin.common.BinaryMessenger;
@@ -122,6 +117,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private boolean showLog = false;
 
     private long mediaDuration = 0L;
+
+    private int retryTimes = 10;
+
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
@@ -225,7 +223,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 trackSelector.buildUponParameters()
                         .setPreferredAudioLanguage(this.preferredAudioLanguage));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
+        mPlayerView = new SimpleExoPlayer.Builder(context).setUseLazyPreparation(true).setTrackSelector(trackSelector).build();
+
+        mPlayerView.setForegroundMode(true);
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
@@ -715,8 +715,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 message.put("offset", eventTime.currentPlaybackPositionMs / 1000);
 
-                Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
+                if(showLog)
+                    Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
                         eventTime.currentPlaybackPositionMs / 1000 + "]");
+
                 eventSink.success(message);
 
             } catch (Exception e) {
@@ -733,7 +735,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         @Override
         public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
 
+
             try {
+                if(retryTimes>=0){
+                    mPlayerView.retry();
+                    retryTimes -=1;
+                    return;
+                }
+
 
                 final String errorMessage = "ExoPlaybackException Type [" + error.type + "] " +
                         error.getSourceException().getCause().getMessage();
