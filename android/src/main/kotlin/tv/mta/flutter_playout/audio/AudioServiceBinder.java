@@ -310,8 +310,6 @@ public class AudioServiceBinder
         mMediaSessionCompat = new MediaSessionCompat(context,
                 AudioServiceBinder.class.getSimpleName(), receiver, null);
 
-        mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-                | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
 
         mMediaSessionCompat.setCallback(new MediaSessionCallback(audioPlayer));
 
@@ -502,15 +500,12 @@ public class AudioServiceBinder
 
         switch (playerState) {
             case PLAYING:
+            case BUFFERING:
                 capabilities |= PlaybackStateCompat.ACTION_PAUSE
                         | PlaybackStateCompat.ACTION_STOP;
                 break;
             case PAUSED:
                 capabilities |= PlaybackStateCompat.ACTION_PLAY
-                        | PlaybackStateCompat.ACTION_STOP;
-                break;
-            case BUFFERING:
-                capabilities |= PlaybackStateCompat.ACTION_PAUSE
                         | PlaybackStateCompat.ACTION_STOP;
                 break;
             case IDLE:
