@@ -504,7 +504,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                         message.put("time", mPlayerView.getCurrentPosition() / 1000);
 
-                        if(this.showLog)
+                        if(showLog)
                             Log.d(TAG, "onTime: [time=" + mPlayerView.getCurrentPosition() / 1000 + "]");
                         eventSink.success(message);
                     }
@@ -641,7 +641,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 message.put("name", "onDuration");
 
                 message.put("duration", mediaDuration);
-                if(this.showLog)
+                if(showLog)
                     Log.d(TAG, "onDuration: [duration=" + mediaDuration + "]");
                 
                 
