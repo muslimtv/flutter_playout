@@ -59,3 +59,6 @@ To display subtitles, pass in an array of `TextTrack` sources to the `Video` wid
 can select a track by providing `preferredTextLanguage` to the `Video` widget with
 a language ISO code for example `en` or `fr`. This setup only applies to Android. For iOS
 please embed text tracks in the HLS manifest.
+
+
+### teste
