@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notificaiton Channel -->
+    <string name="playback_channel_name">Live</string>
+    <string name="playback_channel_description">Strema Club</string>
+</resources>

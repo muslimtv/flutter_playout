@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -14,11 +12,6 @@ import android.view.KeyEvent;
 
 import androidx.core.app.NotificationCompat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 public class PlayerNotificationUtil  {
 
@@ -54,6 +47,9 @@ public class PlayerNotificationUtil  {
                 .setSmallIcon(smallIcon)
                 .setDeleteIntent(getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP));
 
+
+
+
         Intent intent = new Intent(context, activity.getClass());
 
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -62,8 +58,12 @@ public class PlayerNotificationUtil  {
 
         builder.setContentIntent(pendingIntent);
 
+
         return builder;
     }
+
+
+
 
     public static PendingIntent getActionIntent(Context context, int mediaKeyEvent) {
 

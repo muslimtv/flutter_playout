@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +15,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -36,6 +39,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -66,7 +70,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     /**
      * The notification id.
      */
-    private static final int NOTIFICATION_ID = 0;
+    private static final int NOTIFICATION_ID = 1;
     public static SimpleExoPlayer activePlayer;
     private final String TAG = "PlayerLayout";
     /**
@@ -90,6 +94,13 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private int viewId;
 
     private DefaultTrackSelector trackSelector;
+
+
+    /**
+     * Notification
+     */
+
+    PlayerNotificationManager playerNotificationManager;
 
     /**
      * Context
@@ -120,6 +131,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private int retryTimes = 10;
 
+
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
@@ -139,6 +151,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                     .getService();
 
             mMediaNotificationManagerService.setActivePlayer(instance);
+
+
         }
 
         @Override
@@ -221,13 +235,15 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         trackSelector.setParameters(
                 trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguage(this.preferredAudioLanguage));
+                        .setPreferredAudioLanguage(this.preferredAudioLanguage).setMaxVideoSize(640,360));
 
         mPlayerView = new SimpleExoPlayer.Builder(context).setUseLazyPreparation(true).setTrackSelector(trackSelector).build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
+
+
 
         if (this.position >= 0) {
 
@@ -391,9 +407,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             createNotificationChannel();
         }
 
+
+
         NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
                 activity, context, mMediaSessionCompat, mNotificationChannelId);
-
 
 
         if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
@@ -402,7 +419,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         }
 
         if ((capabilities & PlaybackStateCompat.ACTION_PLAY) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_play, "Play",
+            notificationBuilder.addAction(R.drawable.exo_icon_stop, "Play",
                     PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PLAY));
         }
 
@@ -410,9 +427,18 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
-
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
         }
+
+
+        //Foreground
+        if(mMediaNotificationManagerService != null){
+            Log.d("FOREGROUND","YES");
+            mMediaNotificationManagerService.startForeground(NOTIFICATION_ID,notificationBuilder.setOngoing(true).build());
+        }
+
+        
+
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -423,7 +449,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         CharSequence channelNameDisplayedToUser = "Notification Bar Controls";
 
-        int importance = NotificationManager.IMPORTANCE_LOW;
+        int importance = NotificationManager.IMPORTANCE_HIGH;
 
         NotificationChannel newChannel = new NotificationChannel(
                 mNotificationChannelId, channelNameDisplayedToUser, importance);
@@ -446,7 +472,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
-
             notificationManager.cancel(NOTIFICATION_ID);
         }
     }
@@ -660,7 +685,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             cleanPlayerNotification();
             doUnbindMediaNotificationManagerService();
             isBound = false;
-            mPlayerView.stop(true);
             mPlayerView.release();
             activePlayer = null;
 

@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.android.tools.build:gradle:4.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -28,7 +28,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -43,6 +43,7 @@ android {
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildToolsVersion '30.0.1'
 }
 
 dependencies {
@@ -51,6 +52,6 @@ dependencies {
     implementation "androidx.media:media:1.2.0"
     implementation 'com.github.bumptech.glide:glide:4.11.0'
 
-   // api "io.flutter:flutter_embedding_debug:1.0.0-fee6f9e5333472a1931d00f521252901d60e0c76"
+   //api "io.flutter:flutter_embedding_debug:1.0.0-fee6f9e5333472a1931d00f521252901d60e0c76"
 
 }

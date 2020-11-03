@@ -176,32 +176,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                         }
                       },
                     ),
-                    _loading
-                        ? Positioned.fill(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      padding: EdgeInsets.fromLTRB(7.0, 11.0, 5.0, 3.0),
-                      child: Text(widget.title,
-                          style:
-                              TextStyle(fontSize: 11, color: Colors.grey[100])),
-                    ),
-                    Container(
-                      padding: EdgeInsets.fromLTRB(7.0, 0.0, 5.0, 0.0),
-                      child: Text(widget.subtitle,
-                          style: TextStyle(fontSize: 19, color: Colors.white)),
-                    ),
+                    Container(),
                   ],
                 ),
               ),
