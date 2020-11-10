@@ -115,6 +115,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean autoPlay = false;
 
+    private boolean loop = false;
+
     private boolean showControls = false;
 
     private JSONArray subtitles = null;
@@ -186,6 +188,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.autoPlay = args.getBoolean("autoPlay");
 
+            this.loop = args.getBoolean("loop");
+
             this.showControls = args.getBoolean("showControls");
 
             try {
@@ -229,6 +233,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
+
+        if (this.loop){
+            mPlayerView.setRepeatMode(Player.REPEAT_MODE_ONE);
+        }
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
 
