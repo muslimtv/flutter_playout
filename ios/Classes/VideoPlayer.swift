@@ -67,6 +67,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     /* player metadata */
     var url:String = ""
     var autoPlay:Bool = true
+    var loop:Bool = false
     var title:String = ""
     var subtitle:String = ""
     var isLiveStream:Bool = false
@@ -74,47 +75,48 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var position:Double = 0.0
 
     private var mediaDuration = 0.0
-    
+
     private var isPlaying = false
     private var timeObserverToken:Any?
-    
+
     let requiredAssetKeys = [
         "playable",
     ]
-    
+
     /* Flutter event streamer properties */
     private var eventChannel:FlutterEventChannel?
     private var flutterEventSink:FlutterEventSink?
-    
+
     private var nowPlayingInfo = [String : Any]()
-    
+
     deinit {
         print("[dealloc] tv.mta/NativeVideoPlayer")
     }
-    
+
     init(frame:CGRect, viewId: Int64, messenger: FlutterBinaryMessenger, args: Any?) {
-        
+
         /* set view properties */
         self.frame = frame
         self.viewId = viewId
-        
+
         super.init()
-        
+
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(AVAudioSession.Category.playback)
         } catch _ { }
-        
+
         setupEventChannel(viewId: viewId, messenger: messenger, instance: self)
-        
+
         setupMethodChannel(viewId: viewId, messenger: messenger)
-        
+
         /* data as JSON */
         let parsedData = args as! [String: Any]
 
         /* set incoming player properties */
         self.url = parsedData["url"] as! String
         self.autoPlay = parsedData["autoPlay"] as! Bool
+        self.loop = parsedData["loop"] as! Bool
         self.title = parsedData["title"] as! String
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
@@ -123,32 +125,33 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
 
         setupPlayer()
     }
-    
+
     /* set Flutter event channel */
     private func setupEventChannel(viewId: Int64, messenger:FlutterBinaryMessenger, instance:VideoPlayer) {
-        
+
         /* register for Flutter event channel */
         instance.eventChannel = FlutterEventChannel(name: "tv.mta/NativeVideoPlayerEventChannel_" + String(viewId), binaryMessenger: messenger, codec: FlutterJSONMethodCodec.sharedInstance())
-        
+
         instance.eventChannel!.setStreamHandler(instance)
     }
-    
+
     /* set Flutter method channel */
     private func setupMethodChannel(viewId: Int64, messenger:FlutterBinaryMessenger) {
-        
+
         let nativeMethodsChannel = FlutterMethodChannel(name: "tv.mta/NativeVideoPlayerMethodChannel_" + String(viewId), binaryMessenger: messenger);
-        
+
         nativeMethodsChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            
+
             if ("onMediaChanged" == call.method) {
-                
+
                 /* data as JSON */
                 let parsedData = call.arguments as! [String: Any]
 
                 /* set incoming player properties */
                 self.url = parsedData["url"] as! String
                 self.autoPlay = parsedData["autoPlay"] as! Bool
+                self.loop = parsedData["loop"] as! Bool
                 self.title = parsedData["title"] as! String
                 self.subtitle = parsedData["subtitle"] as! String
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
@@ -156,7 +159,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.position = parsedData["position"] as! Double
 
                 self.onMediaChanged()
-                
+
                 result(true)
             }
 
@@ -170,9 +173,9 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
 
                 result(true)
             }
-                
+
             if ("onShowControlsFlagChanged" == call.method) {
-                
+
                 /* data as JSON */
                 let parsedData = call.arguments as! [String: Any]
 
@@ -180,48 +183,48 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.showControls = parsedData["showControls"] as! Bool
 
                 self.onShowControlsFlagChanged()
-                
+
                 result(true)
             }
-                
+
             else if ("resume" == call.method) {
                 self.play()
             }
-                
+
             else if ("pause" == call.method) {
                 self.pause()
             }
-            
+
             /* dispose */
             else if ("dispose" == call.method) {
-                
+
                 self.dispose()
-                
+
                 result(true)
             }
-                
+
             /* not implemented yet */
             else { result(FlutterMethodNotImplemented) }
         })
     }
-    
+
     func setupPlayer(){
         if let videoURL = URL(string: self.url.trimmingCharacters(in: .whitespacesAndNewlines)) {
-            
+
             do {
                 let audioSession = AVAudioSession.sharedInstance()
                 try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
                 try audioSession.setActive(true)
             } catch _ { }
-            
+
             /* Create the asset to play */
             let asset = AVAsset(url: videoURL)
-            
+
             if (asset.isPlayable) {
                 /* Create a new AVPlayerItem with the asset and
                  an array of asset keys to be automatically loaded */
                 let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: requiredAssetKeys)
-                
+
                 /* setup player */
                 self.player = FluterAVPlayer(playerItem: playerItem)
             }
@@ -230,45 +233,53 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 /* setup empty player */
                 self.player = FluterAVPlayer()
             }
-            
+
             let center = NotificationCenter.default
-            
+
             center.addObserver(self, selector: #selector(onComplete(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.player?.currentItem)
             center.addObserver(self, selector:#selector(onAVPlayerNewErrorLogEntry(_:)), name: .AVPlayerItemNewErrorLogEntry, object: player?.currentItem)
             center.addObserver(self, selector:#selector(onAVPlayerFailedToPlayToEndTime(_:)), name: .AVPlayerItemFailedToPlayToEndTime, object: player?.currentItem)
-            
+
             if #available(iOS 12.0, *) {
                 self.player?.preventsDisplaySleepDuringVideoPlayback = true
             }
-            
+
             /* Add observer for AVPlayer status and AVPlayerItem status */
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
-                    
+
             /* setup callback for onTime */
             let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             timeObserverToken = player?.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
                 time in self.onTimeInterval(time: time)
             }
-            
+
             /* setup player view controller */
             self.playerViewController = AVPlayerViewController()
             if #available(iOS 10.0, *) {
                 self.playerViewController?.updatesNowPlayingInfoCenter = false
             }
-            
+
             self.playerViewController?.player = self.player
             self.playerViewController?.view.frame = self.frame
             self.playerViewController?.showsPlaybackControls = self.showControls
             /* setup lock screen controls */
             setupRemoteTransportControls()
-            
+
             setupNowPlayingInfoPanel()
-           
+
             /* start playback if svet to auto play */
             if (self.autoPlay) {
                 play()
+            }
+
+            /* setup loop */
+            if (self.loop) {
+                NotificationCenter.default.addObserver(forName: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil, queue: nil) { [self] notification in
+                    self.player?.seek(to: CMTime.zero)
+                    player?.play()
+                }
             }
             
             /* add player view controller to root view controller */

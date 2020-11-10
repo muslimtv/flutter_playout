@@ -26,6 +26,7 @@ import 'package:flutter_playout/textTrack.dart';
 /// into the HLS manifest, no more configuration required on iOS side.
 class Video extends StatefulWidget {
   final bool autoPlay;
+  final bool loop;
   final bool showControls;
   final String url;
   final String title;
@@ -41,6 +42,7 @@ class Video extends StatefulWidget {
   const Video(
       {Key key,
       this.autoPlay = false,
+      this.loop = false,
       this.showControls = true,
       this.url,
       this.title = "",
@@ -85,6 +87,7 @@ class _VideoState extends State<Video> {
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
+            "loop": widget.loop,
             "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
@@ -117,6 +120,7 @@ class _VideoState extends State<Video> {
           viewType: 'tv.mta/NativeVideoPlayer',
           creationParams: {
             "autoPlay": widget.autoPlay,
+            "loop": widget.loop,
             "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
@@ -249,6 +253,7 @@ class _VideoState extends State<Video> {
       } else {
         _methodChannel.invokeMethod("onMediaChanged", {
           "autoPlay": widget.autoPlay,
+          "loop": widget.loop,
           "url": widget.url,
           "title": widget.title,
           "subtitle": widget.subtitle,
