@@ -68,6 +68,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var url:String = ""
     var autoPlay:Bool = true
     var loop:Bool = false
+    var muted:Bool = false
     var title:String = ""
     var subtitle:String = ""
     var isLiveStream:Bool = false
@@ -116,6 +117,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         /* set incoming player properties */
         self.url = parsedData["url"] as! String
         self.autoPlay = parsedData["autoPlay"] as! Bool
+        self.muted = parsedData["muted"] as! Bool
         self.loop = parsedData["loop"] as! Bool
         self.title = parsedData["title"] as! String
         self.subtitle = parsedData["subtitle"] as! String
@@ -152,6 +154,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.url = parsedData["url"] as! String
                 self.autoPlay = parsedData["autoPlay"] as! Bool
                 self.loop = parsedData["loop"] as! Bool
+                self.muted = parsedData["muted"] as! Bool
                 self.title = parsedData["title"] as! String
                 self.subtitle = parsedData["subtitle"] as! String
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
@@ -259,6 +262,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             self.playerViewController = AVPlayerViewController()
             if #available(iOS 10.0, *) {
                 self.playerViewController?.updatesNowPlayingInfoCenter = false
+            }
+
+            /* setup muted */
+            if (self.muted){
+                self.player?.isMuted = true;
             }
 
             self.playerViewController?.player = self.player

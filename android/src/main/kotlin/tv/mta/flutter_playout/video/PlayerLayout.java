@@ -117,6 +117,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private boolean loop = false;
 
+    private boolean muted = false;
+
     private boolean showControls = false;
 
     private JSONArray subtitles = null;
@@ -190,6 +192,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.loop = args.getBoolean("loop");
 
+            this.muted = args.getBoolean("muted");
+
             this.showControls = args.getBoolean("showControls");
 
             try {
@@ -236,6 +240,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         if (this.loop){
             mPlayerView.setRepeatMode(Player.REPEAT_MODE_ONE);
+        }
+
+        if (this.muted){
+            mPlayerView.setVolume(0f);
         }
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());

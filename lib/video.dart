@@ -27,6 +27,7 @@ import 'package:flutter_playout/textTrack.dart';
 class Video extends StatefulWidget {
   final bool autoPlay;
   final bool loop;
+  final bool muted;
   final bool showControls;
   final String url;
   final String title;
@@ -43,6 +44,7 @@ class Video extends StatefulWidget {
       {Key key,
       this.autoPlay = false,
       this.loop = false,
+      this.muted = false,
       this.showControls = true,
       this.url,
       this.title = "",
@@ -88,6 +90,7 @@ class _VideoState extends State<Video> {
           creationParams: {
             "autoPlay": widget.autoPlay,
             "loop": widget.loop,
+            "muted": widget.muted,
             "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
@@ -121,6 +124,7 @@ class _VideoState extends State<Video> {
           creationParams: {
             "autoPlay": widget.autoPlay,
             "loop": widget.loop,
+            "muted": widget.muted,
             "showControls": widget.showControls,
             "url": widget.url,
             "title": widget.title ?? "",
@@ -255,6 +259,7 @@ class _VideoState extends State<Video> {
         _methodChannel.invokeMethod("onMediaChanged", {
           "autoPlay": widget.autoPlay,
           "loop": widget.loop,
+          "muted": widget.muted,
           "url": widget.url,
           "title": widget.title,
           "subtitle": widget.subtitle,
