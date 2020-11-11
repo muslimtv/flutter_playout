@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_playout/multiaudio/HLSManifestLanguage.dart';
 import 'package:flutter_playout/multiaudio/MultiAudioSupport.dart';
 import 'package:flutter_playout/player_observer.dart';
-import 'package:flutter_playout/player_state.dart';
-import 'package:flutter_playout/video.dart';
+import 'package:flutter_playout/player_statet';
 import 'package:flutter_playout_example/hls/getManifestLanguages.dart';
 
 class VideoPlayout extends StatefulWidget {
