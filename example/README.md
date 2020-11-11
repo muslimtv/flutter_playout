@@ -239,6 +239,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
                     languageCode: "fr",
                     uri: "https://texttracks.example.com/french.vtt"),
               ],
+              loop: false,
             ),
           ),
           /* multi language menu */
