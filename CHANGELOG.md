@@ -1,3 +1,7 @@
+## 1.0.42-MA-experimental [November 11, 2020]
+
+* Merged PR [#70](https://github.com/muslimtv/flutter_playout/pull/70)
+
 ## 1.0.41-MA-experimental [September 13, 2020]
 
 * removed isEmpty check when setting text track language
