@@ -2,14 +2,14 @@ group 'tv.mta.flutter_playout'
 version '1.0.38'
 
 buildscript {
-    ext.kotlin_version = '1.4.10'
+    ext.kotlin_version = '1.4.20'
     repositories {
         google()
         jcenter()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:4.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -43,11 +43,11 @@ android {
     compileOptions {
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    buildToolsVersion '30.0.1'
+    buildToolsVersion '30.0.2'
 }
 
 dependencies {
-    implementation 'com.google.android.exoplayer:exoplayer:2.11.7'
+    implementation 'com.google.android.exoplayer:exoplayer:2.12.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.media:media:1.2.0"
     implementation 'com.github.bumptech.glide:glide:4.11.0'

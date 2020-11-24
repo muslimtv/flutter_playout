@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -15,9 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -347,6 +344,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void updatePlaybackState(PlayerState playerState) {
 
+        return;
+
         if (mMediaSessionCompat == null) return;
 
         PlaybackStateCompat.Builder newPlaybackState = getPlaybackStateBuilder();
@@ -375,7 +374,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         mMediaSessionCompat.setPlaybackState(newPlaybackState.build());
 
-        updateNotification(capabilities);
+        //updateNotification(capabilities);
     }
 
     private @PlaybackStateCompat.Actions
