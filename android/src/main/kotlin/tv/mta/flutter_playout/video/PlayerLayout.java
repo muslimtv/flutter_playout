@@ -721,29 +721,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         /* used with onSeek callback to Flutter code */
         long beforeSeek = 0;
 
-        @Override
-        public void onSeekProcessed(EventTime eventTime) {
 
-            try {
-
-                JSONObject message = new JSONObject();
-
-                message.put("name", "onSeek");
-
-                message.put("position", beforeSeek);
-
-                message.put("offset", eventTime.currentPlaybackPositionMs / 1000);
-
-                if(showLog)
-                    Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
-                        eventTime.currentPlaybackPositionMs / 1000 + "]");
-
-                eventSink.success(message);
-
-            } catch (Exception e) {
-                Log.e(TAG, "onSeek: ", e);
-            }
-        }
 
         @Override
         public void onSeekStarted(EventTime eventTime) {
@@ -780,67 +758,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             }
         }
 
-        @Override
-        public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
 
-            if (playbackState == Player.STATE_READY) {
-
-                if (playWhenReady) {
-
-                    try {
-
-                        updatePlaybackState(PlayerState.PLAYING);
-
-                        JSONObject message = new JSONObject();
-
-                        message.put("name", "onPlay");
-
-                        Log.d(TAG, "onPlay: []");
-                        eventSink.success(message);
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "onPlay: ", e);
-                    }
-
-                } else {
-
-                    try {
-
-                        updatePlaybackState(PlayerState.PAUSED);
-
-                        JSONObject message = new JSONObject();
-
-                        message.put("name", "onPause");
-
-                        Log.d(TAG, "onPause: []");
-                        eventSink.success(message);
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "onPause: ", e);
-                    }
-
-                }
-
-                onDuration();
-
-            } else if (playbackState == Player.STATE_ENDED) {
-
-                try {
-
-                    updatePlaybackState(PlayerState.COMPLETE);
-
-                    JSONObject message = new JSONObject();
-
-                    message.put("name", "onComplete");
-
-                    Log.d(TAG, "onComplete: []");
-                    eventSink.success(message);
-
-                } catch (Exception e) {
-                    Log.e(TAG, "onComplete: ", e);
-                }
-
-            }
-        }
     }
 }
