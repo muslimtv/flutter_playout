@@ -344,7 +344,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void updatePlaybackState(PlayerState playerState) {
 
-        /*
+
 
         if (mMediaSessionCompat == null) return;
 
@@ -374,10 +374,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         mMediaSessionCompat.setPlaybackState(newPlaybackState.build());
 
-        //updateNotification(capabilities);
+        updateNotification(capabilities);
 
-        
-         */
+
+
     }
 
     private @PlaybackStateCompat.Actions
@@ -415,6 +415,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 activity, context, mMediaSessionCompat, mNotificationChannelId);
 
 
+        /*
         if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
             notificationBuilder.addAction(R.drawable.exo_icon_stop, "Stop",
                     PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PAUSE));
@@ -424,7 +425,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             notificationBuilder.addAction(R.drawable.exo_icon_stop, "Play",
                     PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PLAY));
         }
-
+*/
         NotificationManager notificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
