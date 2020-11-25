@@ -67,7 +67,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     /**
      * The notification id.
      */
-    private static final int NOTIFICATION_ID = 1;
+    private static final int NOTIFICATION_ID = 2;
     public static SimpleExoPlayer activePlayer;
     private final String TAG = "PlayerLayout";
     /**
@@ -433,14 +433,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
         }
 
-
         //Foreground
         if(mMediaNotificationManagerService != null){
             Log.d("FOREGROUND","YES");
             mMediaNotificationManagerService.startForeground(NOTIFICATION_ID,notificationBuilder.setOngoing(true).build());
+        }else{
+            Log.d("FOREGROUND","NO");
         }
 
-        
 
     }
 
@@ -468,6 +468,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             notificationManager.createNotificationChannel(newChannel);
         }
+
+
     }
 
     private void cleanPlayerNotification() {
