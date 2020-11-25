@@ -344,7 +344,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void updatePlaybackState(PlayerState playerState) {
 
-        return;
+        /*
 
         if (mMediaSessionCompat == null) return;
 
@@ -375,6 +375,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mMediaSessionCompat.setPlaybackState(newPlaybackState.build());
 
         //updateNotification(capabilities);
+
+        
+         */
     }
 
     private @PlaybackStateCompat.Actions
