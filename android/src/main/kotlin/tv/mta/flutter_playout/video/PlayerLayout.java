@@ -148,11 +148,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                     .getService();
 
             mMediaNotificationManagerService.setActivePlayer(instance);
-
-            NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
-                    activity, context, mMediaSessionCompat, mNotificationChannelId);
-
-
         }
 
         @Override
@@ -433,12 +428,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
-            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.setOngoing(true).build());
         }
 
-        //Foreground
-        Log.d("FOREGROUND","YES");
-        mMediaNotificationManagerService.startForeground(NOTIFICATION_ID,notificationBuilder.setOngoing(true).build());
 
 
     }
