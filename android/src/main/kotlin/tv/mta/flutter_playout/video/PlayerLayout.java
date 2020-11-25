@@ -54,7 +54,6 @@ import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
 
-
 public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventChannel.StreamHandler {
     /**
      * The notification channel id we'll send notifications too
@@ -92,7 +91,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private DefaultTrackSelector trackSelector;
 
-
     /**
      * Notification
      */
@@ -128,7 +126,6 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private int retryTimes = 10;
 
-
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
@@ -138,7 +135,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      */
     private MediaNotificationManagerService mMediaNotificationManagerService;
     /**
-     * The {@link ServiceConnection} serves as glue between this activity and the {@link MediaNotificationManagerService}.
+     * The {@link ServiceConnection} serves as glue between this activity and the
+     * {@link MediaNotificationManagerService}.
      */
     private ServiceConnection mMediaNotificationManagerServiceConnection = new ServiceConnection() {
         @Override
@@ -161,11 +159,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         super(context);
     }
 
-    public PlayerLayout(@NonNull Context context,
-                        Activity activity,
-                        BinaryMessenger messenger,
-                        int id,
-                        Object arguments) {
+    public PlayerLayout(@NonNull Context context, Activity activity, BinaryMessenger messenger, int id,
+            Object arguments) {
 
         super(context);
 
@@ -201,7 +196,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             initPlayer();
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
 
         instance = this;
 
@@ -228,17 +224,15 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         trackSelector = new DefaultTrackSelector(context);
 
-        trackSelector.setParameters(
-                trackSelector.buildUponParameters()
-                        .setPreferredAudioLanguage(this.preferredAudioLanguage).setMaxVideoSize(640,360));
+        trackSelector.setParameters(trackSelector.buildUponParameters()
+                .setPreferredAudioLanguage(this.preferredAudioLanguage).setMaxVideoSize(640, 360));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context).setUseLazyPreparation(true).setTrackSelector(trackSelector).build();
+        mPlayerView = new SimpleExoPlayer.Builder(context).setUseLazyPreparation(true).setTrackSelector(trackSelector)
+                .build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
         mPlayerView.addAnalyticsListener(new PlayerAnalyticsEventsListener());
-
-
 
         if (this.position >= 0) {
 
@@ -251,10 +245,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         this.setPlayer(mPlayerView);
 
-        new EventChannel(
-                messenger,
-                "tv.mta/NativeVideoPlayerEventChannel_" + this.viewId,
-                JSONMethodCodec.INSTANCE).setStreamHandler(this);
+        new EventChannel(messenger, "tv.mta/NativeVideoPlayerEventChannel_" + this.viewId, JSONMethodCodec.INSTANCE)
+                .setStreamHandler(this);
 
         updateMediaSource();
 
@@ -265,19 +257,16 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void setupMediaSession() {
 
-        ComponentName receiver = new ComponentName(context.getPackageName(),
-                RemoteReceiver.class.getName());
+        ComponentName receiver = new ComponentName(context.getPackageName(), RemoteReceiver.class.getName());
 
         /* Create a new MediaSession */
-        mMediaSessionCompat = new MediaSessionCompat(context,
-                PlayerLayout.class.getSimpleName(), receiver, null);
+        mMediaSessionCompat = new MediaSessionCompat(context, PlayerLayout.class.getSimpleName(), receiver, null);
 
         mMediaSessionCompat.setCallback(new MediaSessionCallback());
 
         mMediaSessionCompat.setActive(true);
 
-
-        //Set Atwork
+        // Set Atwork
         setArtwork();
 
         updatePlaybackState(PlayerState.PLAYING);
@@ -285,66 +274,57 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void setAudioMetadata(Bitmap artwork) {
 
-        Log.d("ARTWORK",artwork==null?"NULL":"OK");
+        Log.d("ARTWORK", artwork == null ? "NULL" : "OK");
 
         MediaMetadataCompat metadata;
-        if(artwork == null){
+        if (artwork == null) {
+            metadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle).build();
+        } else {
             metadata = new MediaMetadataCompat.Builder()
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                     .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
-                    .build();
-        }else{
-            metadata = new MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
-                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ART,artwork)
-                    .build();
+                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, artwork).build();
         }
-
 
         mMediaSessionCompat.setMetadata(metadata);
     }
 
-    private void setArtwork(){
-        if(image!=null){
+    private void setArtwork() {
+        if (image != null) {
 
-            Glide.with(this)
-                    .asBitmap()
-                    .load(image)
-                    .into(new CustomTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            setAudioMetadata(resource);
-                        }
-    
-                        @Override
-                        public void onLoadCleared(@Nullable Drawable placeholder) {
-    
-                        }
-                    });
-        }else{
+            Glide.with(this).asBitmap().load(image).into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    setAudioMetadata(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                }
+            });
+        } else {
             setAudioMetadata(null);
         }
 
     }
 
-
     private PlaybackStateCompat.Builder getPlaybackStateBuilder() {
 
         PlaybackStateCompat playbackState = mMediaSessionCompat.getController().getPlaybackState();
 
-        return playbackState == null
-                ? new PlaybackStateCompat.Builder()
+        return playbackState == null ? new PlaybackStateCompat.Builder()
                 : new PlaybackStateCompat.Builder(playbackState);
     }
 
     private void updatePlaybackState(PlayerState playerState) {
 
-
-
-        if (mMediaSessionCompat == null) return;
+        if (mMediaSessionCompat == null)
+            return;
 
         PlaybackStateCompat.Builder newPlaybackState = getPlaybackStateBuilder();
 
@@ -374,23 +354,18 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         updateNotification(capabilities);
 
-
-
     }
 
-    private @PlaybackStateCompat.Actions
-    long getCapabilities(PlayerState playerState) {
+    private @PlaybackStateCompat.Actions long getCapabilities(PlayerState playerState) {
         long capabilities = 0;
 
         switch (playerState) {
             case PLAYING:
             case BUFFERING:
-                capabilities |= PlaybackStateCompat.ACTION_PAUSE
-                        | PlaybackStateCompat.ACTION_STOP;
+                capabilities |= PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_STOP;
                 break;
             case PAUSED:
-                capabilities |= PlaybackStateCompat.ACTION_PLAY
-                        | PlaybackStateCompat.ACTION_STOP;
+                capabilities |= PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_STOP;
                 break;
             case IDLE:
                 capabilities |= PlaybackStateCompat.ACTION_PLAY;
@@ -407,51 +382,45 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             createNotificationChannel();
         }
 
-
-
-        NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(
-                activity, context, mMediaSessionCompat, mNotificationChannelId);
-
+        NotificationCompat.Builder notificationBuilder = PlayerNotificationUtil.from(activity, context,
+                mMediaSessionCompat, mNotificationChannelId);
 
         /*
-        if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
-            notificationBuilder.addAction(R.drawable.exo_icon_stop, "Stop",
-                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PAUSE));
-        }
-
-        if ((capabilities & PlaybackStateCompat.ACTION_PLAY) != 0) {
-            notificationBuilder.addAction(R.drawable.exo_icon_stop, "Play",
-                    PlayerNotificationUtil.getActionIntent(context, KeyEvent.KEYCODE_MEDIA_PLAY));
-        }
-*/
-        NotificationManager notificationManager = (NotificationManager)
-                context.getSystemService(Context.NOTIFICATION_SERVICE);
+         * if ((capabilities & PlaybackStateCompat.ACTION_PAUSE) != 0) {
+         * notificationBuilder.addAction(R.drawable.exo_icon_stop, "Stop",
+         * PlayerNotificationUtil.getActionIntent(context,
+         * KeyEvent.KEYCODE_MEDIA_PAUSE)); }
+         * 
+         * if ((capabilities & PlaybackStateCompat.ACTION_PLAY) != 0) {
+         * notificationBuilder.addAction(R.drawable.exo_icon_stop, "Play",
+         * PlayerNotificationUtil.getActionIntent(context,
+         * KeyEvent.KEYCODE_MEDIA_PLAY)); }
+         */
+        NotificationManager notificationManager = (NotificationManager) context
+                .getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
             notificationManager.notify(NOTIFICATION_ID, notificationBuilder.setOngoing(true).build());
         }
-
-
 
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
 
-        NotificationManager notificationManager = (NotificationManager)
-                context.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) context
+                .getSystemService(Context.NOTIFICATION_SERVICE);
 
         CharSequence channelNameDisplayedToUser = "Notification Bar Controls";
 
         int importance = NotificationManager.IMPORTANCE_HIGH;
 
-        NotificationChannel newChannel = new NotificationChannel(
-                mNotificationChannelId, channelNameDisplayedToUser, importance);
+        NotificationChannel newChannel = new NotificationChannel(mNotificationChannelId, channelNameDisplayedToUser,
+                importance);
 
         newChannel.setDescription("All notifications");
 
         newChannel.setShowBadge(false);
-
 
         newChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
@@ -460,12 +429,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             notificationManager.createNotificationChannel(newChannel);
         }
 
-
     }
 
     private void cleanPlayerNotification() {
-        NotificationManager notificationManager = (NotificationManager)
-                getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getContext()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
             notificationManager.cancel(NOTIFICATION_ID);
@@ -474,8 +442,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void doBindMediaNotificationManagerService() {
 
-        Intent service = new Intent(this.context,
-                MediaNotificationManagerService.class);
+        Intent service = new Intent(this.context, MediaNotificationManagerService.class);
 
         this.context.bindService(service, mMediaNotificationManagerServiceConnection, Context.BIND_AUTO_CREATE);
 
@@ -525,7 +492,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                         message.put("time", mPlayerView.getCurrentPosition() / 1000);
 
-                        if(showLog)
+                        if (showLog)
                             Log.d(TAG, "onTime: [time=" + mPlayerView.getCurrentPosition() / 1000 + "]");
                         eventSink.success(message);
                     }
@@ -558,7 +525,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
          * Check for HLS playlist file extension ( .m3u8 or .m3u )
          * https://tools.ietf.org/html/rfc8216
          */
-        if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
+        if (this.url.contains(".m3u8") || this.url.contains(".m3u")) {
             videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
         } else {
             videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
@@ -583,7 +550,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             updateMediaSource();
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
     }
 
     public void onShowControlsFlagChanged(Object arguments) {
@@ -599,12 +567,13 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 setUseController(sc);
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
     }
 
     /**
-     * set audio language for player - language must be one of available in HLS manifest
-     * currently playing
+     * set audio language for player - language must be one of available in HLS
+     * manifest currently playing
      *
      * @param arguments
      */
@@ -619,12 +588,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             if (mPlayerView != null && trackSelector != null && mPlayerView.isPlaying()) {
 
-                trackSelector.setParameters(
-                        trackSelector.buildUponParameters()
-                                .setPreferredAudioLanguage(languageCode));
+                trackSelector
+                        .setParameters(trackSelector.buildUponParameters().setPreferredAudioLanguage(languageCode));
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
     }
 
     public void seekTo(Object arguments) {
@@ -644,7 +613,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 }
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
     }
 
     void onDuration() {
@@ -662,10 +632,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 message.put("name", "onDuration");
 
                 message.put("duration", mediaDuration);
-                if(showLog)
+                if (showLog)
                     Log.d(TAG, "onDuration: [duration=" + mediaDuration + "]");
-                
-                
+
                 eventSink.success(message);
             }
 
@@ -684,11 +653,13 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             mPlayerView.release();
             activePlayer = null;
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            /* ignore */ }
     }
 
     /**
-     * A {@link android.support.v4.media.session.MediaSessionCompat.Callback} implementation for MediaPlayer.
+     * A {@link android.support.v4.media.session.MediaSessionCompat.Callback}
+     * implementation for MediaPlayer.
      */
     private final class MediaSessionCallback extends MediaSessionCompat.Callback {
 
@@ -721,7 +692,29 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         /* used with onSeek callback to Flutter code */
         long beforeSeek = 0;
 
+        @Override
+        public void onSeekProcessed(EventTime eventTime) {
 
+            try {
+
+                JSONObject message = new JSONObject();
+
+                message.put("name", "onSeek");
+
+                message.put("position", beforeSeek);
+
+                message.put("offset", eventTime.currentPlaybackPositionMs / 1000);
+
+                if (showLog)
+                    Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset="
+                            + eventTime.currentPlaybackPositionMs / 1000 + "]");
+                if (eventSink != null)
+                    eventSink.success(message);
+
+            } catch (Exception e) {
+                Log.e(TAG, "onSeek: ", e);
+            }
+        }
 
         @Override
         public void onSeekStarted(EventTime eventTime) {
@@ -732,17 +725,15 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         @Override
         public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
 
-
             try {
-                if(retryTimes>=0){
-                    retryTimes -=1;
+                if (retryTimes >= 0) {
+                    retryTimes -= 1;
                     mPlayerView.retry();
                     return;
                 }
 
-
-                final String errorMessage = "ExoPlaybackException Type [" + error.type + "] " +
-                        error.getSourceException().getCause().getMessage();
+                final String errorMessage = "ExoPlaybackException Type [" + error.type + "] "
+                        + error.getSourceException().getCause().getMessage();
 
                 JSONObject message = new JSONObject();
 
@@ -758,6 +749,67 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             }
         }
 
+        @Override
+        public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
 
+            if (playbackState == Player.STATE_READY) {
+
+                if (playWhenReady) {
+
+                    try {
+
+                        updatePlaybackState(PlayerState.PLAYING);
+
+                        JSONObject message = new JSONObject();
+
+                        message.put("name", "onPlay");
+
+                        Log.d(TAG, "onPlay: []");
+                        eventSink.success(message);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "onPlay: ", e);
+                    }
+
+                } else {
+
+                    try {
+
+                        updatePlaybackState(PlayerState.PAUSED);
+
+                        JSONObject message = new JSONObject();
+
+                        message.put("name", "onPause");
+
+                        Log.d(TAG, "onPause: []");
+                        eventSink.success(message);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "onPause: ", e);
+                    }
+
+                }
+
+                onDuration();
+
+            } else if (playbackState == Player.STATE_ENDED) {
+
+                try {
+
+                    updatePlaybackState(PlayerState.COMPLETE);
+
+                    JSONObject message = new JSONObject();
+
+                    message.put("name", "onComplete");
+
+                    Log.d(TAG, "onComplete: []");
+                    eventSink.success(message);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "onComplete: ", e);
+                }
+
+            }
+        }
     }
 }
