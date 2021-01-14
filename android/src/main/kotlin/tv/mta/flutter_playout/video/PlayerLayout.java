@@ -227,8 +227,13 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         trackSelector.setParameters(trackSelector.buildUponParameters()
                 .setPreferredAudioLanguage(this.preferredAudioLanguage).setMaxVideoSize(640, 360));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context).setUseLazyPreparation(true).setTrackSelector(trackSelector)
+        mPlayerView = new SimpleExoPlayer.Builder(context)
+                .setUseLazyPreparation(true)
+                .setTrackSelector(trackSelector)
                 .build();
+
+
+        mPlayerView.setRepeatMode(Player.REPEAT_MODE_ONE);
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
