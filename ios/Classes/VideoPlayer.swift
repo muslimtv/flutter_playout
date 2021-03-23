@@ -151,15 +151,18 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 let parsedData = call.arguments as! [String: Any]
 
                 /* set incoming player properties */
-                self.url = parsedData["url"] as String?
-                self.autoPlay = parsedData["autoPlay"] as Bool?
-                self.loop = parsedData["loop"] as Bool?
-                self.muted = parsedData["muted"] as Bool?
-                self.title = parsedData["title"] as String?
-                self.subtitle = parsedData["subtitle"] as String?
-                self.isLiveStream = parsedData["isLiveStream"] as Bool?
-                self.showControls = parsedData["showControls"] as Bool?
-                self.position = parsedData["position"] as Double?
+                self.url = parsedData["url"] as! String
+                self.autoPlay = parsedData["autoPlay"] as! Bool
+                self.loop = parsedData["loop"] as! Bool
+                self.muted = parsedData["muted"] as! Bool
+                self.title = parsedData["title"] as! String
+                self.subtitle = parsedData["subtitle"] as! String
+                self.isLiveStream = parsedData["isLiveStream"] as! Bool
+                self.showControls = parsedData["showControls"] as! Bool
+                if parsedData["position"] != nil {
+                    self.position = parsedData["position"] as! Double
+                }
+
 
                 self.onMediaChanged()
 
