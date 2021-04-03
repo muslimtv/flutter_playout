@@ -763,7 +763,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
                         eventTime.currentPlaybackPositionMs / 1000 + "]");
-                eventSink.success(message);
+                if (eventSink != null){
+                    eventSink.success(message);
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "onSeek: ", e);
@@ -791,7 +793,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 message.put("error", errorMessage);
 
                 Log.d(TAG, "onError: [errorMessage=" + errorMessage + "]");
-                eventSink.success(message);
+                if (eventSink != null){
+                    eventSink.success(message);
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "onError: ", e);
@@ -814,7 +818,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         message.put("name", "onPlay");
 
                         Log.d(TAG, "onPlay: []");
-                        eventSink.success(message);
+                        if (eventSink != null){
+                            eventSink.success(message);
+                        }
 
                     } catch (Exception e) {
                         Log.e(TAG, "onPlay: ", e);
@@ -831,7 +837,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         message.put("name", "onPause");
 
                         Log.d(TAG, "onPause: []");
-                        eventSink.success(message);
+                        if (eventSink != null){
+                            eventSink.success(message);
+                        }
 
                     } catch (Exception e) {
                         Log.e(TAG, "onPause: ", e);
@@ -852,7 +860,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                     message.put("name", "onComplete");
 
                     Log.d(TAG, "onComplete: []");
-                    eventSink.success(message);
+                    if (eventSink != null){
+                        eventSink.success(message);
+                    }
 
                 } catch (Exception e) {
                     Log.e(TAG, "onComplete: ", e);
