@@ -700,10 +700,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         try {
 
             isBound = false;
-
-            mPlayerView.stop(true);
-
-            mPlayerView.release();
+            if (mPlayerView != null){
+                mPlayerView.stop(true);
+                mPlayerView.release();
+            }
 
             doUnbindMediaNotificationManagerService();
 
