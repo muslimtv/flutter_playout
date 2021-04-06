@@ -111,7 +111,7 @@ class _VideoState extends State<Video> {
           },
           gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
             new Factory<OneSequenceGestureRecognizer>(
-              () => new EagerGestureRecognizer(),
+              () => new PanGestureRecognizer(),
             ),
           ].toSet(),
         );
@@ -142,7 +142,7 @@ class _VideoState extends State<Video> {
           },
           gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
             new Factory<OneSequenceGestureRecognizer>(
-              () => new EagerGestureRecognizer(),
+              () => new PanGestureRecognizer(),
             ),
           ].toSet(),
         );
