@@ -247,7 +247,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* Add observer for AVPlayer status and AVPlayerItem status */
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
-            self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+            if #available(iOS 10.0, *) {
+                self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+            } else {
+                // Fallback on earlier versions
+            }
 
             /* setup callback for onTime */
             let interval = CMTime(seconds: 1.0, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
@@ -355,38 +359,39 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             }
         }
         
-        else if keyPath == #keyPath(AVPlayer.timeControlStatus) {
-            
-            guard let p = object as! AVPlayer? else {
-                return
-            }
-            
-            if #available(iOS 10.0, *) {
+        if #available(iOS 10.0, *) {
+            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+                
+                guard let p = object as! AVPlayer? else {
+                    return
+                }
                 
                 switch (p.timeControlStatus) {
                 
-                case AVPlayerTimeControlStatus.paused:
+                case AVPlayer.TimeControlStatus.paused:
                     isPlaying = false
                     self.flutterEventSink?(["name":"onPause"])
                     break
-                
-                case AVPlayerTimeControlStatus.playing:
+                    
+                case AVPlayer.TimeControlStatus.playing:
                     isPlaying = true
                     self.flutterEventSink?(["name":"onPlay"])
                     break
-                
+                    
                 case .waitingToPlayAtSpecifiedRate: break
                 @unknown default:
                     break
                 }
+                
+            } else {
+                super.observeValue(forKeyPath: keyPath,
+                                   of: object,
+                                   change: change,
+                                   context: context)
+                return
             }
-            
         } else {
-            super.observeValue(forKeyPath: keyPath,
-                               of: object,
-                               change: change,
-                               context: context)
-            return
+            // Fallback on earlier versions
         }
     }
     

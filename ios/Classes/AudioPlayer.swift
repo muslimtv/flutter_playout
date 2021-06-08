@@ -160,7 +160,11 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
                         /* Add observer for AVPlayer status and AVPlayerItem status */
                         self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
                         self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
-                        self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+                        if #available(iOS 10.0, *) {
+                            self.audioPlayer.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
+                        } else {
+                            // Fallback on earlier versions
+                        }
                         
                         let interval = CMTime(seconds: 1.0,
                         preferredTimescale: CMTimeScale(NSEC_PER_SEC))
@@ -201,48 +205,47 @@ class AudioPlayer: NSObject, FlutterPlugin, FlutterStreamHandler {
     /* Observe If AVPlayerItem.status Changed to Fail */
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
         
-        if keyPath == #keyPath(AVPlayerItem.status) {
-            
-            let newStatus: AVPlayerItem.Status
-            
-            if let newStatusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
-                newStatus = AVPlayerItem.Status(rawValue: newStatusAsNumber.intValue)!
-            } else {
-                newStatus = .unknown
+            if keyPath == #keyPath(AVPlayerItem.status) {
+                
+                let newStatus: AVPlayerItem.Status
+                
+                if let newStatusAsNumber = change?[NSKeyValueChangeKey.newKey] as? NSNumber {
+                    newStatus = AVPlayerItem.Status(rawValue: newStatusAsNumber.intValue)!
+                } else {
+                    newStatus = .unknown
+                }
+                
+                if newStatus == .failed {
+                    self.flutterEventSink?(["name":"onError", "error":(String(describing: self.audioPlayer.currentItem?.error))])
+                } else if newStatus == .readyToPlay {
+                    self.flutterEventSink?(["name":"onReady"])
+                }
             }
             
-            if newStatus == .failed {
-                self.flutterEventSink?(["name":"onError", "error":(String(describing: self.audioPlayer.currentItem?.error))])
-            } else if newStatus == .readyToPlay {
-                self.flutterEventSink?(["name":"onReady"])
-            }
-        }
-        
-        else if keyPath == #keyPath(AVPlayer.timeControlStatus) {
-            
-            guard let p = object as! AVPlayer? else {
-                return
-            }
-            
-            if #available(iOS 10.0, *) {
+        if #available(iOS 10.0, *) {
+            if keyPath == #keyPath(AVPlayer.timeControlStatus) {
+                
+                guard let p = object as! AVPlayer? else {
+                    return
+                }
                 
                 switch (p.timeControlStatus) {
                 
-                case AVPlayerTimeControlStatus.paused:
+                case AVPlayer.TimeControlStatus.paused:
                     self.flutterEventSink?(["name":"onPause"])
                     break
-                
-                case AVPlayerTimeControlStatus.playing:
+                    
+                case AVPlayer.TimeControlStatus.playing:
                     self.flutterEventSink?(["name":"onPlay"])
                     break
-                
+                    
                 case .waitingToPlayAtSpecifiedRate: break
                 @unknown default:
                     break
                 }
-            } else {
-                // Fallback on earlier versions
             }
+        } else {
+            // Fallback on earlier versions
         }
     }
     

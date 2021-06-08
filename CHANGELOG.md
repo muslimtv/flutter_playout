@@ -1,3 +1,7 @@
+## 1.0.43 [June 8, 2021]
+
+* Updated iOS deployment target to 9.0
+
 ## 1.0.42 [November 10, 2020]
 
 * Merged [PR](https://github.com/muslimtv/flutter_playout/pull/70)
