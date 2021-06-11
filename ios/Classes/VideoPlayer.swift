@@ -249,8 +249,6 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options:[.old, .new, .initial], context: nil)
             if #available(iOS 10.0, *) {
                 self.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus), options:[.old, .new, .initial], context: nil)
-            } else {
-                // Fallback on earlier versions
             }
 
             /* setup callback for onTime */
@@ -359,7 +357,24 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             }
         }
         
-        if #available(iOS 10.0, *) {
+        if (keyPath == #keyPath(AVPlayer.status)) {
+            guard let p = object as! AVPlayer? else {
+                return
+            }
+            
+            switch (p.status) {
+            case .readyToPlay:
+                break
+            case .unknown:
+                break
+            case .failed:
+                break
+            @unknown default:
+                break
+            }
+        }
+        
+        else if #available(iOS 10.0, *) {
             if keyPath == #keyPath(AVPlayer.timeControlStatus) {
                 
                 guard let p = object as! AVPlayer? else {
@@ -391,7 +406,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 return
             }
         } else {
-            // Fallback on earlier versions
+            super.observeValue(forKeyPath: keyPath,
+                               of: object,
+                               change: change,
+                               context: context)
+            return
         }
     }
     

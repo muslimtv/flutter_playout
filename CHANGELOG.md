@@ -1,3 +1,8 @@
+## 2.0.1 [June 12, 2021]
+
+* Set iOS deployment target to 9.0
+* Fixed observed value unhandled exception in iOS implementation
+
 ## 2.0.0 [June 11, 2021]
 
 * Migrated to null-safety
