@@ -1,3 +1,7 @@
+## 2.0.0 [June 11, 2021]
+
+* Migrated to null-safety
+
 ## 1.0.43 [June 8, 2021]
 
 * Updated iOS deployment target to 9.0

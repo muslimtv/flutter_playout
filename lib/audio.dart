@@ -7,19 +7,19 @@ class Audio {
 
   Audio._();
 
-  static Audio _instance;
-  static Audio instance() {
+  static Audio? _instance;
+  static Audio? instance() {
     if (_instance == null) {
       _instance = Audio._();
     }
     return _instance;
   }
 
-  String _url;
-  String _title;
-  String _subtitle;
-  Duration _position;
-  bool _isLiveStream;
+  String? _url;
+  String? _title;
+  String? _subtitle;
+  Duration? _position;
+  bool? _isLiveStream;
 
   /// Plays given [url] with native player. The [title] and [subtitle]
   /// are used for lock screen info panel on both iOS & Android. Optionally pass

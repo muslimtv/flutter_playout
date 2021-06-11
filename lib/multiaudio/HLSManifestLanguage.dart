@@ -1,8 +1,8 @@
 class HLSManifestLanguage {
-  final String code;
-  final String name;
-  final String nativeName;
-  String url;
+  final String? code;
+  final String? name;
+  final String? nativeName;
+  String? url;
 
   HLSManifestLanguage(this.code, this.name, {this.nativeName, this.url});
 
@@ -25,7 +25,6 @@ class HLSManifestLanguage {
   }
 
   static List<dynamic> toJsonFromList(List<HLSManifestLanguage> languages) {
-    if (languages == null) return List<dynamic>();
     return languages.map((a) => a.toJson()).toList();
   }
 }
