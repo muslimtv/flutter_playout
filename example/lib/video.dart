@@ -22,7 +22,7 @@ class VideoPlayout extends StatefulWidget {
 class _VideoPlayoutState extends State<VideoPlayout>
     with PlayerObserver, MultiAudioSupport {
   final String _url = null;
-  List<HLSManifestLanguage> _hlsLanguages = List<HLSManifestLanguage>();
+  List<HLSManifestLanguage> _hlsLanguages = [];
 
   @override
   void initState() {
