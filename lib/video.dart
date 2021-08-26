@@ -182,8 +182,7 @@ class _VideoState extends State<Video> {
 
   void _onPlatformViewCreated(int viewId) {
     _platformViewId = viewId;
-    _methodChannel =
-        MethodChannel("tv.mta/NativeVideoPlayerMethodChannel_$viewId");
+    _methodChannel = MethodChannel("tv.mta/NativeVideoPlayerMethodChannel_$viewId");
   }
 
   /// The [desiredState] flag has changed so need to update playback to
@@ -213,17 +212,13 @@ class _VideoState extends State<Video> {
         widget.preferredAudioLanguage != null &&
         widget.preferredAudioLanguage!.isNotEmpty &&
         !Platform.isIOS) {
-      _methodChannel!.invokeMethod(
-          "setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
+      _methodChannel!.invokeMethod("setPreferredAudioLanguage", {"code": widget.preferredAudioLanguage});
     }
   }
 
   void _onPreferredTextLanguageChanged() async {
-    if (_methodChannel != null &&
-        widget.preferredTextLanguage != null &&
-        !Platform.isIOS) {
-      _methodChannel!.invokeMethod(
-          "setPreferredTextLanguage", {"code": widget.preferredTextLanguage});
+    if (_methodChannel != null && widget.preferredTextLanguage != null && !Platform.isIOS) {
+      _methodChannel!.invokeMethod("setPreferredTextLanguage", {"code": widget.preferredTextLanguage});
     }
   }
 
@@ -258,6 +253,7 @@ class _VideoState extends State<Video> {
           "subtitle": widget.subtitle,
           "isLiveStream": widget.isLiveStream,
           "showControls": widget.showControls,
+          "position": widget.position,
         });
       }
     }
