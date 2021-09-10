@@ -12,16 +12,15 @@ class VideoPlayout extends StatefulWidget {
   final PlayerState desiredState;
   final bool showPlayerControls;
 
-  const VideoPlayout({Key key, this.desiredState, this.showPlayerControls})
-      : super(key: key);
+  const VideoPlayout({Key key, this.desiredState, this.showPlayerControls}) : super(key: key);
 
   @override
   _VideoPlayoutState createState() => _VideoPlayoutState();
 }
 
-class _VideoPlayoutState extends State<VideoPlayout>
-    with PlayerObserver, MultiAudioSupport {
-  final String _url = null;
+class _VideoPlayoutState extends State<VideoPlayout> with PlayerObserver, MultiAudioSupport {
+  final String _url = "https://www.rmp-streaming.com/media/big-buck-bunny-360p.mp4";
+  // "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/courses%2F-M66CPTTGRpt5jW4otna%2F-M66CPTVJUyZHce4QW3g%2F9d5ddc39-d2e1-4b1e-bab2-de175415d811.mp4?alt=media&token=a5e1c499-375b-4ad6-984c-fa91de7a49ad";
   List<HLSManifestLanguage> _hlsLanguages = [];
 
   @override
@@ -46,7 +45,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
           AspectRatio(
             aspectRatio: 16 / 9,
             child: Video(
-              autoPlay: true,
+              autoPlay: false,
               showControls: widget.showPlayerControls,
               title: "MTA International",
               subtitle: "Reaching The Corners Of The Earth",
@@ -69,10 +68,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
                         .map((e) => MaterialButton(
                               child: Text(
                                 e.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .button
-                                    .copyWith(color: Colors.white),
+                                style: Theme.of(context).textTheme.button.copyWith(color: Colors.white),
                               ),
                               onPressed: () {
                                 setPreferredAudioLanguage(e.code);
