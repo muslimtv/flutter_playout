@@ -480,6 +480,59 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        
+        getArtBoard()
+    }
+    
+    private func setupNowPlayingInfo(with artwork: MPMediaItemArtwork) {
+        
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+
+        nowPlayingInfo[MPMediaItemPropertyTitle] = self.title
+        
+        nowPlayingInfo[MPMediaItemPropertyArtist] = self.subtitle
+        
+        if #available(iOS 10.0, *) {
+            nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = self.isLiveStream
+        }
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player?.currentTime().seconds
+
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player?.currentItem?.asset.duration.seconds
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func getData(from url: URL, completion: @escaping (UIImage?) -> Void) {
+            URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) in
+                if let data = data {
+                    completion(UIImage(data:data))
+                }
+            })
+            .resume()
+    }
+
+    private func getArtBoard() {
+            guard let url = URL(string: "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053") else { return }
+            getData(from: url) { [weak self] image in
+                guard let self = self,
+                    let downloadedImage = image else {
+                        return
+                }
+                
+                if #available(iOS 10.0, *) {
+                    let artwork = MPMediaItemArtwork.init(boundsSize: downloadedImage.size, requestHandler: { _ -> UIImage in
+                        return downloadedImage
+                    })
+                    self.setupNowPlayingInfo(with: artwork)
+                } else {
+                    let artwork = MPMediaItemArtwork(image: downloadedImage)
+                    self.setupNowPlayingInfo(with: artwork)
+                }
+                
+            }
     }
     
     private func updateInfoPanelOnPause() {
