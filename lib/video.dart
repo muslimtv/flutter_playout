@@ -38,6 +38,7 @@ class Video extends StatefulWidget {
   final double position;
   final Function? onViewCreated;
   final PlayerState desiredState;
+  final String? artworkUrl;
 
   const Video(
       {Key? key,
@@ -53,7 +54,8 @@ class Video extends StatefulWidget {
       this.position = -1,
       this.onViewCreated,
       this.desiredState = PlayerState.PLAYING,
-      this.textTracks})
+      this.textTracks,
+      this.artworkUrl})
       : super(key: key);
 
   @override
@@ -127,6 +129,7 @@ class _VideoState extends State<Video> {
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
+            "artworkUrl": widget.artworkUrl,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
@@ -254,6 +257,7 @@ class _VideoState extends State<Video> {
           "isLiveStream": widget.isLiveStream,
           "showControls": widget.showControls,
           "position": widget.position,
+          "artworkUrl": widget.artworkUrl,
         });
       }
     }

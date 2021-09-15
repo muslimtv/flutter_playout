@@ -2,8 +2,7 @@ import 'package:flutter/services.dart';
 
 /// See [play] method as well as example app on how to use.
 class Audio {
-  static const MethodChannel _audioChannel =
-      MethodChannel('tv.mta/NativeAudioChannel');
+  static const MethodChannel _audioChannel = MethodChannel('tv.mta/NativeAudioChannel');
 
   Audio._();
 
@@ -20,6 +19,7 @@ class Audio {
   String? _subtitle;
   Duration? _position;
   bool? _isLiveStream;
+  String? _artworkUrl;
 
   /// Plays given [url] with native player. The [title] and [subtitle]
   /// are used for lock screen info panel on both iOS & Android. Optionally pass
@@ -31,25 +31,27 @@ class Audio {
       {String title = "",
       String subtitle = "",
       Duration position = Duration.zero,
-      bool isLiveStream = false}) async {
+      bool isLiveStream = false,
+      String? artworkUrl}) async {
     if (_hasDataChanged(url, title, subtitle, position, isLiveStream)) {
       this._url = url;
       this._title = title;
       this._subtitle = subtitle;
       this._position = position;
       this._isLiveStream = isLiveStream;
+      this._artworkUrl = artworkUrl;
       return _audioChannel.invokeMethod("play", <String, dynamic>{
         "url": url,
         "title": title,
         "subtitle": subtitle,
         "position": position.inMilliseconds,
         "isLiveStream": isLiveStream,
+        "artworkUrl": artworkUrl,
       });
     }
   }
 
-  bool _hasDataChanged(String url, String title, String subtitle,
-      Duration position, bool isLiveStream) {
+  bool _hasDataChanged(String url, String title, String subtitle, Duration position, bool isLiveStream) {
     return this._url != url ||
         this._title != title ||
         this._subtitle != subtitle ||

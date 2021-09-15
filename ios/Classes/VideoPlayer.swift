@@ -73,6 +73,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var isLiveStream:Bool = false
     var showControls:Bool = false
     var position:Double = 0.0
+    var artworkUrl :String?
 
     private var mediaDuration = 0.0
 
@@ -121,7 +122,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.subtitle = parsedData["subtitle"] as! String
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
-        self.position = parsedData["position"] as! Double
+        self.artworkUrl = parsedData["artworkUrl"] as? String
 
         setupPlayer()
     }
@@ -157,6 +158,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
                 self.showControls = parsedData["showControls"] as! Bool
                 self.position = parsedData["position"] as! Double
+                self.artworkUrl = parsedData["artworkUrl"] as? String
 
                 self.onMediaChanged()
 
@@ -505,7 +507,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
-    private func getData(from url: URL, completion: @escaping (UIImage?) -> Void) {
+    private func getData(from url: URL, completion: @escaping (UIImage?) -> Void) { 
             URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) in
                 if let data = data {
                     completion(UIImage(data:data))
@@ -515,7 +517,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     }
 
     private func getArtBoard() {
-            guard let url = URL(string: "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053") else { return }
+        guard let urlArt = self.artworkUrl else { return }
+            guard let url = URL(string: urlArt) else { return }
             getData(from: url) { [weak self] image in
                 guard let self = self,
                     let downloadedImage = image else {
