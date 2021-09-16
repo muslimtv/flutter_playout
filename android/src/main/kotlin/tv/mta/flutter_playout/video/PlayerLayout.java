@@ -8,6 +8,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -31,12 +33,9 @@ import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
 import com.google.android.exoplayer2.source.SingleSampleMediaSource;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -46,6 +45,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 
 import io.flutter.plugin.common.BinaryMessenger;
@@ -122,6 +125,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private JSONArray subtitles = null;
 
     private long mediaDuration = 0L;
+
+    private String artworkUrl = "";
+
+    private Bitmap artworkBitmap;
+
     /**
      * Whether we have bound to a {@link MediaNotificationManagerService}.
      */
@@ -191,6 +199,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             this.loop = args.getBoolean("loop");
 
             this.showControls = args.getBoolean("showControls");
+
+            this.artworkUrl = args.getString("artworkUrl");
 
             try {
                 this.subtitles = args.getJSONArray("subtitles");
@@ -286,6 +296,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void setAudioMetadata() {
 
+        if (artworkUrl == null)
+            artworkUrl = "";
+
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
@@ -293,6 +306,27 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 .build();
 
         mMediaSessionCompat.setMetadata(metadata);
+        if (artworkUrl != null && !artworkUrl.isEmpty()) {
+            getBitmapFromURL(artworkUrl);
+        }
+
+    }
+
+    private void getBitmapFromURL(String src) {
+        try {
+            MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
+//                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artworkBitmap)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, artworkUrl)
+
+                    .build();
+            mMediaSessionCompat.setMetadata(metadata);
+        } catch (Exception e) {
+            // Log exception
+            int i = 0;
+        }
     }
 
     private PlaybackStateCompat.Builder getPlaybackStateBuilder() {
@@ -567,6 +601,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             this.title = args.get("title");
 
             this.subtitle = args.get("description");
+
+            this.artworkUrl = args.get("artworkUrl");
 
             updateMediaSource();
 

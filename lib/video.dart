@@ -99,6 +99,7 @@ class _VideoState extends State<Video> {
             "position": widget.position,
             "textTracks": TextTrack.toJsonFromList(widget.textTracks ?? []),
             "preferredTextLanguage": widget.preferredTextLanguage ?? "",
+            "artworkUrl": widget.artworkUrl,
           },
           creationParamsCodec: const JSONMessageCodec(),
           onPlatformViewCreated: (viewId) {
