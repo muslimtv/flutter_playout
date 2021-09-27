@@ -19,7 +19,9 @@ class VideoPlayout extends StatefulWidget {
 }
 
 class _VideoPlayoutState extends State<VideoPlayout> with PlayerObserver, MultiAudioSupport {
-  final String _url = "https://www.rmp-streaming.com/media/big-buck-bunny-360p.mp4";
+  final String _url =
+      "https://player.vimeo.com/external/343735688.hd.mp4?s=583158831c9a4bd25f880ce2b01042ae2e55caa6&profile_id=174";
+  // final String _url = "https://www.rmp-streaming.com/media/big-buck-bunny-360p.mp4";
   // "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/courses%2F-M66CPTTGRpt5jW4otna%2F-M66CPTVJUyZHce4QW3g%2F9d5ddc39-d2e1-4b1e-bab2-de175415d811.mp4?alt=media&token=a5e1c499-375b-4ad6-984c-fa91de7a49ad";
   List<HLSManifestLanguage> _hlsLanguages = [];
 
@@ -58,7 +60,9 @@ class _VideoPlayoutState extends State<VideoPlayout> with PlayerObserver, MultiA
               preferredTextLanguage: "en",
               loop: false,
               artworkUrl:
-                  "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053",
+                  "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg",
+              // artworkUrl:
+              //     "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053",
             ),
           ),
           /* multi language menu */
