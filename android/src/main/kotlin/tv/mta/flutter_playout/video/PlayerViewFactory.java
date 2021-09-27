@@ -55,7 +55,6 @@ public class PlayerViewFactory extends PlatformViewFactory {
         if (playerView != null) {
 
             playerView.dispose();
-            playerView = null;
         }
     }
 }
