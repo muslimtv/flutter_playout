@@ -81,6 +81,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      */
     SimpleExoPlayer mPlayerView;
     boolean isBound = true;
+    boolean isDestroyed = false;
     private PlayerLayout instance;
     /**
      * The underlying {@link MediaSessionCompat}.
@@ -724,8 +725,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     @Override
     public void onDestroy() {
 
+        if (isDestroyed)
+            return;
         try {
 
+            isDestroyed = true;
             isBound = false;
 
             mPlayerView.stop(true);
@@ -790,7 +794,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
                         eventTime.currentPlaybackPositionMs / 1000 + "]");
-                eventSink.success(message);
+
+                if (eventSink != null)
+                    eventSink.success(message);
 
             } catch (Exception e) {
                 Log.e(TAG, "onSeek: ", e);

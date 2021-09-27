@@ -22,6 +22,18 @@ class PlayoutExample extends StatefulWidget {
 }
 
 class _PlayoutExampleState extends State<PlayoutExample> {
+  final String _url1 =
+      "https://player.vimeo.com/external/343735688.hd.mp4?s=583158831c9a4bd25f880ce2b01042ae2e55caa6&profile_id=174";
+  final String _url2 = "https://www.rmp-streaming.com/media/big-buck-bunny-360p.mp4";
+  String _url;
+  bool hideVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _url = _url1;
+  }
+
   PlayerState _desiredState = PlayerState.STOPPED;
   bool _showPlayerControls = true;
   @override
@@ -42,23 +54,24 @@ class _PlayoutExampleState extends State<PlayoutExample> {
             onPressed: () async {
               // pause playback
               setState(() {
-                _desiredState = PlayerState.PAUSED;
+                hideVideo = !hideVideo;
+                // _desiredState = PlayerState.PAUSED;
               });
               // wait for user to come back from navigated screen
-              await Navigator.push(context, MaterialPageRoute<void>(
-                builder: (context) {
-                  return Scaffold(
-                    appBar: AppBar(),
-                    body: Container(
-                      child: Center(
-                        child: AudioPlayout(
-                          desiredState: _desiredState,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ));
+              // await Navigator.push(context, MaterialPageRoute<void>(
+              //   builder: (context) {
+              //     return Scaffold(
+              //       appBar: AppBar(),
+              //       body: Container(
+              //         child: Center(
+              //           child: AudioPlayout(
+              //             desiredState: _desiredState,
+              //           ),
+              //         ),
+              //       ),
+              //     );
+              //   },
+              // ));
               // user is back. resume playback
 //              setState(() {
 //                _desiredState = PlayerState.PLAYING;
@@ -70,7 +83,12 @@ class _PlayoutExampleState extends State<PlayoutExample> {
             icon: Icon(Icons.adjust),
             onPressed: () async {
               setState(() {
-                _showPlayerControls = !_showPlayerControls;
+                if (_url == _url1)
+                  _url = _url2;
+                else
+                  _url = _url1;
+
+                // _showPlayerControls = !_showPlayerControls;
               });
             },
           ),
@@ -123,10 +141,13 @@ class _PlayoutExampleState extends State<PlayoutExample> {
               ),
             ),
             SliverToBoxAdapter(
-                child: VideoPlayout(
-              desiredState: _desiredState,
-              showPlayerControls: _showPlayerControls,
-            )),
+                child: hideVideo
+                    ? Container()
+                    : VideoPlayout(
+                        desiredState: _desiredState,
+                        showPlayerControls: _showPlayerControls,
+                        url: _url,
+                      )),
             SliverToBoxAdapter(
               child: Container(
                 padding: EdgeInsets.fromLTRB(17.0, 23.0, 17.0, 0.0),
