@@ -38,8 +38,10 @@ public class MediaNotificationManagerService extends Service {
     public void onDestroy() {
 
         try {
-
-            avPlayer.onDestroy();
+            if (avPlayer != null) {
+                avPlayer.onDestroy();
+                avPlayer = null;
+            }
 
         } catch (Exception e) { /* ignore */ }
     }
@@ -49,7 +51,10 @@ public class MediaNotificationManagerService extends Service {
 
         try {
 
-            avPlayer.onDestroy();
+            if (avPlayer != null) {
+                avPlayer.onDestroy();
+                avPlayer = null;
+            }
 
             stopSelf();
 
@@ -62,7 +67,10 @@ public class MediaNotificationManagerService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
 
-        avPlayer.onDestroy();
+        if (avPlayer != null) {
+            avPlayer.onDestroy();
+            avPlayer = null;
+        }
 
         stopSelf();
     }
@@ -74,8 +82,8 @@ public class MediaNotificationManagerService extends Service {
     public void setActivePlayer(FlutterAVPlayer player) {
 
         if (avPlayer != null) {
-
             avPlayer.onDestroy();
+            avPlayer = null;
         }
 
         avPlayer = player;
