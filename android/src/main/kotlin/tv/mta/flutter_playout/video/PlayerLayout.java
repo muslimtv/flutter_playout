@@ -27,6 +27,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
@@ -563,27 +564,27 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             for (int i = 0; i < this.subtitles.length(); i++) {
 
-                try {
-
-                    JSONObject subtitle = this.subtitles.getJSONObject(i);
-
-                    Format subtitleFormat =
-                            Format.createTextSampleFormat(
-                                    /* id= */ null,
-                                    subtitle.getString("mimeType"),
-                                    C.SELECTION_FLAG_DEFAULT,
-                                    subtitle.getString("languageCode"));
-
-                    MediaSource subtitleMediaSource =
-                            new SingleSampleMediaSource.Factory(dataSourceFactory)
-                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
-                                            subtitleFormat, C.TIME_UNSET);
-
-                    source = new MergingMediaSource(source, subtitleMediaSource);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//
+//                    JSONObject subtitle = this.subtitles.getJSONObject(i);
+//
+//                    Format subtitleFormat =
+//                            Format.createTextSampleFormat(
+//                                    /* id= */ null,
+//                                    subtitle.getString("mimeType"),
+//                                    C.SELECTION_FLAG_DEFAULT,
+//                                    subtitle.getString("languageCode"));
+//
+//                    MediaSource subtitleMediaSource =
+//                            new SingleSampleMediaSource.Factory(dataSourceFactory)
+//                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
+//                                            subtitleFormat, C.TIME_UNSET);
+//
+//                    source = new MergingMediaSource(source, subtitleMediaSource);
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
             }
         }
 
@@ -803,12 +804,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         }
 
         @Override
-        public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
-
+        public void onPlayerError(EventTime eventTime, PlaybackException error) {
             try {
 
-                final String errorMessage = "ExoPlaybackException Type [" + error.type + "] " +
-                        error.getSourceException().getCause().getMessage();
+                final String errorMessage = "PlaybackException Code [" + error.errorCode + "] " +
+                        error.getCause().getMessage();
 
                 JSONObject message = new JSONObject();
 
@@ -823,6 +823,28 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 Log.e(TAG, "onError: ", e);
             }
         }
+
+//        @Override
+//        public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
+//
+//            try {
+//
+//                final String errorMessage = "ExoPlaybackException Type [" + error.type + "] " +
+//                        error.getSourceException().getCause().getMessage();
+//
+//                JSONObject message = new JSONObject();
+//
+//                message.put("name", "onError");
+//
+//                message.put("error", errorMessage);
+//
+//                Log.d(TAG, "onError: [errorMessage=" + errorMessage + "]");
+//                eventSink.success(message);
+//
+//            } catch (Exception e) {
+//                Log.e(TAG, "onError: ", e);
+//            }
+//        }
 
         @Override
         public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
