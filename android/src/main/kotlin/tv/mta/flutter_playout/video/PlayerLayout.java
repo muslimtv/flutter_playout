@@ -708,7 +708,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             long newDuration = mPlayerView.getDuration();
 
-            if (newDuration != mediaDuration && eventSink != null) {
+            if (newDuration != mediaDuration && newDuration > 0 && eventSink != null) {
 
                 mediaDuration = newDuration;
 
