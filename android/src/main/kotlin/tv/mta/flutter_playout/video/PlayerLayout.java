@@ -27,6 +27,7 @@ import androidx.core.app.NotificationCompat;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
@@ -39,6 +40,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONArray;
@@ -146,6 +148,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
 
+            Log.d(TAG, "onServiceConnected ");
+
             mMediaNotificationManagerService = ((MediaNotificationManagerService.MediaNotificationManagerServiceBinder) service)
                     .getService();
 
@@ -154,6 +158,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+
+            Log.d(TAG, "onServiceDisconnected ");
 
             mMediaNotificationManagerService = null;
         }
@@ -170,6 +176,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         Object arguments) {
 
         super(context);
+
+        Log.d(TAG, "PlayerLayout constructor ");
 
         this.activity = activity;
 
@@ -224,15 +232,21 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     @Override
     public void onListen(Object o, EventChannel.EventSink eventSink) {
+
+        Log.d(TAG, "onListen event sink ");
+
         this.eventSink = eventSink;
     }
 
     @Override
     public void onCancel(Object o) {
+        Log.d(TAG, "onCancel ");
         this.eventSink = null;
     }
 
     private void initPlayer() {
+
+        Log.d(TAG, "initPlayer ");
 
         trackSelector = new DefaultTrackSelector(context);
 
@@ -276,6 +290,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void setupMediaSession() {
 
+        Log.d(TAG, "setupMediaSession ");
+
         ComponentName receiver = new ComponentName(context.getPackageName(),
                 RemoteReceiver.class.getName());
 
@@ -296,6 +312,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     }
 
     private void setAudioMetadata() {
+
+        Log.d(TAG, "setAudioMetadata ");
 
         if (artworkUrl == null)
             artworkUrl = "";
@@ -326,7 +344,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
             mMediaSessionCompat.setMetadata(metadata);
         } catch (Exception e) {
             // Log exception
-            int i = 0;
+            Log.e(TAG, "getBitmapFromURL: " + e.getMessage(), e);
         }
     }
 
@@ -341,7 +359,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
     private void updatePlaybackState(PlayerState playerState) {
 
-        if (mMediaSessionCompat == null) return;
+        Log.d(TAG, "updatePlaybackState ");
+
+    if (mMediaSessionCompat == null) return;
 
         PlaybackStateCompat.Builder newPlaybackState = getPlaybackStateBuilder();
 
@@ -503,6 +523,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 try {
 
+                    Log.d(TAG, "listenForPlayerTimeChange ");
+
                     if (mPlayerView.isPlaying()) {
 
                         JSONObject message = new JSONObject();
@@ -539,7 +561,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     }
 
     private void updateMediaSource() {
-        /* Produces DataSource instances through which media data is loaded. */
+
+        Log.d(TAG, "updateMediaSource ");
+
+    /* Produces DataSource instances through which media data is loaded. */
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
                 Util.getUserAgent(context, "flutter_playout"));
 
@@ -550,9 +575,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
          * https://tools.ietf.org/html/rfc8216
          */
         if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
-            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(new MediaItem.Builder()
+                    .setUri(Uri.parse(this.url)).setMimeType(MimeTypes.APPLICATION_M3U8).build());
         } else {
-            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(new MediaItem.Builder().setUri(Uri.parse(this.url)).build());
         }
 
         mPlayerView.prepare(withSubtitles(dataSourceFactory, videoSource));
@@ -567,6 +594,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private MediaSource withSubtitles(DataSource.Factory dataSourceFactory, MediaSource source) {
 
         if (this.subtitles != null && this.subtitles.length() > 0) {
+
+            Log.d(TAG, "withSubtitles ");
 
             for (int i = 0; i < this.subtitles.length(); i++) {
 
@@ -589,6 +618,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                     source = new MergingMediaSource(source, subtitleMediaSource);
 
                 } catch (JSONException e) {
+                    Log.e(TAG, "withSubtitles: " + e.getMessage(), e);
                     e.printStackTrace();
                 }
             }
@@ -600,6 +630,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     public void onMediaChanged(Object arguments) {
 
         try {
+
+            Log.d(TAG, "onMediaChanged ");
 
             java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
@@ -613,14 +645,18 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             updateMediaSource();
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            Log.e(TAG, "onMediaChanged: " + e.getMessage(), e);
+        }
     }
 
     public void onShowControlsFlagChanged(Object arguments) {
 
         try {
 
-            if (arguments instanceof HashMap) {
+            Log.d(TAG, "onShowControlsFlagChanged ");
+
+        if (arguments instanceof HashMap) {
 
                 HashMap<String, Object> args = (HashMap<String, Object>) arguments;
 
@@ -629,7 +665,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 setUseController(sc);
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            Log.e(TAG, "onShowControlsFlagChanged: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -640,6 +678,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      */
     public void setPreferredAudioLanguage(Object arguments) {
         try {
+
+            Log.d(TAG, "setPreferredAudioLanguage ");
 
             java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
@@ -654,7 +694,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                                 .setPreferredAudioLanguage(languageCode));
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            Log.e(TAG, "setPreferredAudioLanguage: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -665,6 +707,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      */
     public void setPreferredTextLanguage(Object arguments) {
         try {
+
+            Log.d(TAG, "setPreferredTextLanguage ");
 
             java.util.HashMap<String, String> args = (java.util.HashMap<String, String>) arguments;
 
@@ -679,11 +723,15 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                                 .setPreferredTextLanguage(languageCode));
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            Log.e(TAG, "setPreferredTextLanguage: " + e.getMessage(), e);
+        }
     }
 
     public void seekTo(Object arguments) {
         try {
+
+            Log.d(TAG, "seekTo ");
 
             java.util.HashMap<String, Double> args = (java.util.HashMap<String, Double>) arguments;
 
@@ -699,14 +747,20 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                 }
             }
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) {
+            Log.e(TAG, "seekTo: " + e.getMessage(), e);
+        }
     }
 
     void onDuration() {
 
         try {
 
+            Log.d(TAG, "onDuration ");
+
             long newDuration = mPlayerView.getDuration();
+
+            Log.d(TAG, "onDuration newDuration: [newDuration=" + newDuration + "]");
 
             if (newDuration != mediaDuration && newDuration > 0 && eventSink != null) {
 
@@ -730,6 +784,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     @Override
     public void onDestroy() {
 
+        Log.d(TAG, "onDestroy");
+
         if (isDestroyed)
             return;
         try {
@@ -747,7 +803,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             activePlayer = null;
 
-        } catch (Exception e) { /* ignore */ }
+        } catch (Exception e) { /* ignore */
+            Log.e(TAG, "onDestroy: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -788,6 +846,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         public void onSeekProcessed(EventTime eventTime) {
 
             try {
+                Log.d(TAG, "onSeekProcessed");
 
                 JSONObject message = new JSONObject();
 
@@ -811,11 +870,14 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         @Override
         public void onSeekStarted(EventTime eventTime) {
 
+            Log.d(TAG, "onSeekStarted");
             beforeSeek = eventTime.currentPlaybackPositionMs / 1000;
         }
 
         @Override
         public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
+
+            Log.d(TAG, "onPlayerError ");
 
             try {
 
@@ -838,6 +900,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         @Override
         public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
+
+            Log.d(TAG, "onPlayerStateChanged ");
 
             if (playbackState == Player.STATE_READY) {
 
