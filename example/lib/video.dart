@@ -59,9 +59,7 @@ class _VideoPlayoutState extends State<VideoPlayout> with PlayerObserver, MultiA
               preferredTextLanguage: "en",
               loop: false,
               artworkUrl:
-                  "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg",
-              // artworkUrl:
-              //     "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053",
+                  "https://firebasestorage.googleapis.com/v0/b/upliftnow-dev.appspot.com/o/category_images%2Fthealcoholexperiment%2F1b127c64-7c28-4c1a-9835-5ae8e23afafc.jpg?alt=media&token=7679e470-64b4-4a66-a4b8-6e6c4c521053",
             ),
           ),
           /* multi language menu */
