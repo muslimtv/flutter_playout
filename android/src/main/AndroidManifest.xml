@@ -22,14 +22,16 @@
         </service>
 
         <receiver
-            android:name=".audio.RemoteReceiver" >
+            android:name=".audio.RemoteReceiver" 
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
 
         <receiver
-            android:name=".video.RemoteReceiver" >
+            android:name=".video.RemoteReceiver" 
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
