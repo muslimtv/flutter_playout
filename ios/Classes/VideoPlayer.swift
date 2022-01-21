@@ -73,6 +73,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     var isLiveStream:Bool = false
     var showControls:Bool = false
     var position:Double = 0.0
+    var artworkUrl :String?
 
     private var mediaDuration = 0.0
 
@@ -103,7 +104,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
 
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(AVAudioSession.Category.playback)
+            if #available(iOS 10.0, *) {
+                try audioSession.setCategory(AVAudioSession.Category.playback, mode: .moviePlayback, options: AVAudioSession.CategoryOptions.allowBluetooth)
+            } else {
+                try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
+            }
         } catch _ { }
 
         setupEventChannel(viewId: viewId, messenger: messenger, instance: self)
@@ -122,6 +127,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         self.isLiveStream = parsedData["isLiveStream"] as! Bool
         self.showControls = parsedData["showControls"] as! Bool
         self.position = parsedData["position"] as! Double
+        self.artworkUrl = parsedData["artworkUrl"] as? String
 
         setupPlayer()
     }
@@ -157,6 +163,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
                 self.isLiveStream = parsedData["isLiveStream"] as! Bool
                 self.showControls = parsedData["showControls"] as! Bool
                 self.position = parsedData["position"] as! Double
+                self.artworkUrl = parsedData["artworkUrl"] as? String
 
                 self.onMediaChanged()
 
@@ -213,7 +220,11 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
 
             do {
                 let audioSession = AVAudioSession.sharedInstance()
-                try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
+                if #available(iOS 10.0, *) {
+                    try audioSession.setCategory(AVAudioSession.Category.playback, mode: .moviePlayback, options: AVAudioSession.CategoryOptions.allowBluetooth)
+                } else {
+                    try audioSession.setCategory(AVAudioSession.Category.playback, options: AVAudioSession.CategoryOptions.allowBluetooth)
+                }
                 try audioSession.setActive(true)
             } catch _ { }
 
@@ -266,6 +277,12 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             self.playerViewController?.player = self.player
             self.playerViewController?.view.frame = self.frame
             self.playerViewController?.showsPlaybackControls = self.showControls
+            self.playerViewController?.allowsPictureInPicturePlayback = true
+            if #available(iOS 14.2, *) {
+                if AVPictureInPictureController.isPictureInPictureSupported() {
+                    self.playerViewController?.canStartPictureInPictureAutomaticallyFromInline = true
+                }
+            }
             /* setup lock screen controls */
             setupRemoteTransportControls()
 
@@ -287,7 +304,6 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
             /* add player view controller to root view controller */
             let viewController = (UIApplication.shared.delegate?.window??.rootViewController)!
             viewController.addChild(self.playerViewController!)
-            
         }
     }
     
@@ -465,6 +481,8 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
     
     private func setupNowPlayingInfoPanel() {
         
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = nil
+        
         nowPlayingInfo[MPMediaItemPropertyTitle] = self.title
         
         nowPlayingInfo[MPMediaItemPropertyArtist] = self.subtitle
@@ -480,6 +498,60 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        
+        getArtBoard()
+    }
+    
+    private func setupNowPlayingInfoPanel(with artwork: MPMediaItemArtwork) {
+        
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        
+        nowPlayingInfo[MPMediaItemPropertyTitle] = self.title
+        
+        nowPlayingInfo[MPMediaItemPropertyArtist] = self.subtitle
+        
+        if #available(iOS 10.0, *) {
+            nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = self.isLiveStream
+        }
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player?.currentTime().seconds
+
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player?.currentItem?.asset.duration.seconds
+
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 0 // will be set to 1 by onTime callback
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    private func getData(from url: URL, completion: @escaping (UIImage?) -> Void) {
+                URLSession.shared.dataTask(with: url, completionHandler: {(data, response, error) in
+                if let data = data {
+                    completion(UIImage(data:data))
+                }
+            })
+            .resume()
+    }
+
+    private func getArtBoard() {
+        guard let urlArt = self.artworkUrl else { return }
+        guard let url = URL(string: urlArt) else { return }
+        getData(from: url) { [weak self] image in
+            guard let self = self,
+                let downloadedImage = image else {
+                    return
+            }
+
+            if #available(iOS 10.0, *) {
+                let artwork = MPMediaItemArtwork.init(boundsSize: downloadedImage.size, requestHandler: { _ -> UIImage in
+                    return downloadedImage
+                })
+                self.setupNowPlayingInfoPanel(with: artwork)
+            } else {
+                let artwork = MPMediaItemArtwork(image: downloadedImage)
+                self.setupNowPlayingInfoPanel(with: artwork)
+            }
+
+        }
     }
     
     private func updateInfoPanelOnPause() {
