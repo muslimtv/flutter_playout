@@ -239,8 +239,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                 )
               : Slider(
                   activeColor: Colors.white,
-                  value: currentPlaybackPosition?.inMilliseconds?.toDouble() ??
-                      0.0,
+                  value: currentPlaybackPosition.inMilliseconds.toDouble(),
                   onChanged: (double value) {
                     seekTo(value);
                   },

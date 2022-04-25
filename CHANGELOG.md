@@ -1,3 +1,7 @@
+## 2.0.2-rc2 [April 25, 2022]
+
+* See [ISSUE-85](https://github.com/muslimtv/flutter_playout/issues/85)
+
 ## 2.0.2-rc1 [January 21, 2022]
 
 * Android v2 embedding API

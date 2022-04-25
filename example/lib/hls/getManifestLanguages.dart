@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 Future<List<HLSManifestLanguage>> getManifestLanguages(
     String manifestURL) async {
   try {
-    final response = await http.get(manifestURL);
+    final response = await http.get(Uri.parse(manifestURL));
 
     final List<String> manifest = response.body.split("\n");
 

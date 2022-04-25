@@ -687,7 +687,7 @@ class VideoPlayer: NSObject, FlutterPlugin, FlutterStreamHandler, FlutterPlatfor
      detach player UI to keep audio playing in background
      */
     func applicationDidEnterBackground(_ application: UIApplication) {
-        self.playerViewController?.player = nil
+//        self.playerViewController?.player = nil
     }
     
     /**
