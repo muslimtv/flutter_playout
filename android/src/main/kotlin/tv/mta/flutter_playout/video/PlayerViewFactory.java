@@ -15,7 +15,7 @@ public class PlayerViewFactory extends PlatformViewFactory {
 
     private Activity activity;
 
-    private PlayerView playerView;
+    private  PlayerView playerView;
 
     private final BinaryMessenger messenger;
 
@@ -55,7 +55,9 @@ public class PlayerViewFactory extends PlatformViewFactory {
 
     public void onAttachActivity(Activity activity) {
         this.activity = activity;
-        playerView.setActivity(activity);
+        if (playerView != null) {
+            playerView.setActivity(activity);
+        }
     }
 
     public void onDetachActivity() {

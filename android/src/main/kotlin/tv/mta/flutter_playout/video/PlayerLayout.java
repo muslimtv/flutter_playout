@@ -35,7 +35,6 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
@@ -80,12 +79,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      * The notification id.
      */
     private static final int NOTIFICATION_ID = 0;
-    public static SimpleExoPlayer activePlayer;
+    public static ExoPlayer activePlayer;
     private final String TAG = "PlayerLayout";
     /**
-     * Reference to the {@link SimpleExoPlayer}
+     * Reference to the {@link ExoPlayer}
      */
-    SimpleExoPlayer mPlayerView;
+    ExoPlayer mPlayerView;
     boolean isBound = true;
     private PlayerLayout instance;
     /**
@@ -244,7 +243,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         .setPreferredAudioLanguage(this.preferredAudioLanguage)
                         .setPreferredTextLanguage(this.preferredTextLanguage));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context)
+        mPlayerView = new ExoPlayer.Builder(context)
                 .setUseLazyPreparation(true)
                 .setTrackSelector(trackSelector)
                 .build();
