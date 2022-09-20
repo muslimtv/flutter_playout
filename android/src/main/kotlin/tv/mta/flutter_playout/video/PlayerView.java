@@ -28,6 +28,10 @@ public class PlayerView implements PlatformView, MethodChannel.MethodCallHandler
         return player;
     }
 
+    public void setActivity(Activity activity) {
+        player.setActivity(activity);
+    }
+
     @Override
     public void dispose() {
         player.onDestroy();

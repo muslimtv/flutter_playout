@@ -38,9 +38,17 @@ public class PlayerNotificationUtil  {
 
         builder.setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
-                .setLargeIcon(description.getIconBitmap())
+//                .setLargeIcon(description.getIconBitmap())
+//                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+//                        .setMediaSession(mediaSession.getSessionToken()))
                 .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                        .setMediaSession(mediaSession.getSessionToken()))
+                        .setMediaSession(mediaSession.getSessionToken())
+                        .setShowCancelButton(true)
+                        .setCancelButtonIntent(
+                                getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP)))
+                .setColorized(true)
+                .setAutoCancel(true)
+                .setLargeIcon(mediaMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ART))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSmallIcon(smallIcon)
                 .setDeleteIntent(getActionIntent(context, KeyEvent.KEYCODE_MEDIA_STOP));

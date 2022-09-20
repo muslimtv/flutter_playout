@@ -310,9 +310,6 @@ public class AudioServiceBinder
         mMediaSessionCompat = new MediaSessionCompat(context,
                 AudioServiceBinder.class.getSimpleName(), receiver, null);
 
-        mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-                | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
-
         mMediaSessionCompat.setCallback(new MediaSessionCallback(audioPlayer));
 
         mMediaSessionCompat.setActive(true);

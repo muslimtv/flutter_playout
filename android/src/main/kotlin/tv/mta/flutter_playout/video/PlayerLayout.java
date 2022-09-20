@@ -8,6 +8,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -19,12 +21,19 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
@@ -37,6 +46,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -106,6 +116,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     private String title = "";
 
     private String subtitle = "";
+
+    private String artworkUrl = "";
 
     private String preferredAudioLanguage = "mul";
 
@@ -180,6 +192,8 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             this.subtitle = args.getString("subtitle");
 
+            this.artworkUrl = args.getString("artworkUrl");
+
             this.preferredAudioLanguage = args.getString("preferredAudioLanguage");
 
             this.preferredTextLanguage = args.getString("preferredTextLanguage");
@@ -230,7 +244,10 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         .setPreferredAudioLanguage(this.preferredAudioLanguage)
                         .setPreferredTextLanguage(this.preferredTextLanguage));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context).setTrackSelector(trackSelector).build();
+        mPlayerView = new SimpleExoPlayer.Builder(context)
+                .setUseLazyPreparation(true)
+                .setTrackSelector(trackSelector)
+                .build();
 
         mPlayerView.setPlayWhenReady(this.autoPlay);
 
@@ -272,25 +289,51 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         mMediaSessionCompat = new MediaSessionCompat(context,
                 PlayerLayout.class.getSimpleName(), receiver, null);
 
-        mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-                | MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS);
-
         mMediaSessionCompat.setCallback(new MediaSessionCallback());
 
         mMediaSessionCompat.setActive(true);
 
-        setAudioMetadata();
+
+        setAudioMetadataWithArtwork();
 
         updatePlaybackState(PlayerState.PLAYING);
     }
 
-    private void setAudioMetadata() {
+    private void setAudioMetadataWithArtwork() {
+        if (artworkUrl != null && !artworkUrl.isEmpty()) {
 
-        MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+            Glide.with(this).asBitmap().load(artworkUrl).into(new CustomTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                    setAudioMetadata(resource);
+                }
+
+                @Override
+                public void onLoadCleared(@Nullable Drawable placeholder) {
+                }
+
+                @Override
+                public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                    setAudioMetadata(null);
+                }
+            });
+        } else {
+            setAudioMetadata(null);
+        }
+    }
+
+    private void setAudioMetadata(Bitmap artwork) {
+
+        MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
-                .build();
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle);
+
+        if (artwork != null) {
+            metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, artwork);
+        }
+
+        MediaMetadataCompat metadata = metadataBuilder.build();
 
         mMediaSessionCompat.setMetadata(metadata);
     }
@@ -533,17 +576,28 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                     JSONObject subtitle = this.subtitles.getJSONObject(i);
 
-                    Format subtitleFormat =
-                            Format.createTextSampleFormat(
-                                    /* id= */ null,
-                                    subtitle.getString("mimeType"),
-                                    C.SELECTION_FLAG_DEFAULT,
-                                    subtitle.getString("languageCode"));
+//                    Format subtitleFormat =
+//                            Format.createTextSampleFormat(
+//                                    /* id= */ null,
+//                                    subtitle.getString("mimeType"),
+//                                    C.SELECTION_FLAG_DEFAULT,
+//                                    subtitle.getString("languageCode"));
+//
+//                    MediaSource subtitleMediaSource =
+//                            new SingleSampleMediaSource.Factory(dataSourceFactory)
+//                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
+//                                            subtitleFormat, C.TIME_UNSET);
+
+                    MediaItem.SubtitleConfiguration configuration = new MediaItem.SubtitleConfiguration
+                            .Builder(Uri.parse(subtitle.getString("uri")))
+                            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                            .setMimeType(subtitle.getString("mimeType"))
+                            .setLanguage(subtitle.getString("languageCode"))
+                            .build();
 
                     MediaSource subtitleMediaSource =
                             new SingleSampleMediaSource.Factory(dataSourceFactory)
-                                    .createMediaSource(Uri.parse(subtitle.getString("uri")),
-                                            subtitleFormat, C.TIME_UNSET);
+                                    .createMediaSource(configuration, mediaDuration);
 
                     source = new MergingMediaSource(source, subtitleMediaSource);
 
@@ -646,16 +700,17 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
             Double pos = args.get("position");
 
-            if (pos >= 0) {
+            if (pos != null) {
+                if (pos >= 0) {
 
-                this.position = pos.intValue();
+                    this.position = pos.intValue();
 
-                if (mPlayerView != null) {
+                    if (mPlayerView != null) {
 
-                    mPlayerView.seekTo(this.position * 1000);
+                        mPlayerView.seekTo(this.position * 1000);
+                    }
                 }
             }
-
         } catch (Exception e) { /* ignore */ }
     }
 
@@ -739,64 +794,69 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
         long beforeSeek = 0;
 
         @Override
-        public void onSeekProcessed(EventTime eventTime) {
+        public void onPositionDiscontinuity(@NonNull EventTime eventTime,
+                                            @NonNull Player.PositionInfo oldPosition,
+                                            @NonNull Player.PositionInfo newPosition,
+                                            int reason) {
 
-            try {
+            if (reason == Player.DISCONTINUITY_REASON_SEEK) {
 
-                JSONObject message = new JSONObject();
+                beforeSeek = oldPosition.positionMs / 1000;
 
-                message.put("name", "onSeek");
+                if (eventSink != null) {
+                    try {
 
-                message.put("position", beforeSeek);
+                        JSONObject message = new JSONObject();
 
-                message.put("offset", eventTime.currentPlaybackPositionMs / 1000);
+                        message.put("name", "onSeek");
 
-                Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
-                        eventTime.currentPlaybackPositionMs / 1000 + "]");
-                eventSink.success(message);
+                        message.put("position", beforeSeek);
 
-            } catch (Exception e) {
-                Log.e(TAG, "onSeek: ", e);
+                        message.put("offset", eventTime.currentPlaybackPositionMs / 1000);
+
+                        Log.d(TAG, "onSeek: [position=" + beforeSeek + "] [offset=" +
+                                newPosition.positionMs / 1000 + "]");
+                        eventSink.success(message);
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "onSeek: ", e);
+                    }
+                }
             }
         }
 
         @Override
-        public void onSeekStarted(EventTime eventTime) {
+        public void onPlayerError(@NonNull EventTime eventTime, @NonNull PlaybackException error) {
 
-            beforeSeek = eventTime.currentPlaybackPositionMs / 1000;
-        }
+            if (eventSink != null) {
+                try {
 
-        @Override
-        public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
+                    final String errorMessage = "PlaybackException ErrorCode [" +
+                            error.getErrorCodeName() + "] " +
+                            error.getMessage();
 
-            try {
+                    JSONObject message = new JSONObject();
 
-                final String errorMessage = "ExoPlaybackException Type [" + error.type + "] " +
-                        error.getSourceException().getCause().getMessage();
+                    message.put("name", "onError");
 
-                JSONObject message = new JSONObject();
+                    message.put("error", errorMessage);
 
-                message.put("name", "onError");
+                    Log.d(TAG, "onError: [errorMessage=" + errorMessage + "]");
+                    eventSink.success(message);
 
-                message.put("error", errorMessage);
-
-                Log.d(TAG, "onError: [errorMessage=" + errorMessage + "]");
-                eventSink.success(message);
-
-            } catch (Exception e) {
-                Log.e(TAG, "onError: ", e);
+                } catch (Exception e) {
+                    Log.e(TAG, "onError: ", e);
+                }
             }
         }
 
         @Override
-        public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
-
+        public void onPlayerStateChanged(@NonNull EventTime eventTime, boolean playWhenReady, int playbackState) {
             if (playbackState == Player.STATE_READY) {
 
                 if (playWhenReady) {
 
                     try {
-
                         updatePlaybackState(PlayerState.PLAYING);
 
                         JSONObject message = new JSONObject();
@@ -805,50 +865,55 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                         Log.d(TAG, "onPlay: []");
                         eventSink.success(message);
-
                     } catch (Exception e) {
                         Log.e(TAG, "onPlay: ", e);
                     }
 
                 } else {
 
-                    try {
+                    if (eventSink != null) {
+                        try {
 
-                        updatePlaybackState(PlayerState.PAUSED);
+                            updatePlaybackState(PlayerState.PAUSED);
 
-                        JSONObject message = new JSONObject();
+                            JSONObject message = new JSONObject();
 
-                        message.put("name", "onPause");
+                            message.put("name", "onPause");
 
-                        Log.d(TAG, "onPause: []");
-                        eventSink.success(message);
+                            Log.d(TAG, "onPause: []");
+                            eventSink.success(message);
 
-                    } catch (Exception e) {
-                        Log.e(TAG, "onPause: ", e);
+                        } catch (Exception e) {
+                            Log.e(TAG, "onPause: ", e);
+                        }
                     }
-
                 }
 
                 onDuration();
 
             } else if (playbackState == Player.STATE_ENDED) {
 
-                try {
+                if (eventSink != null) {
+                    try {
 
-                    updatePlaybackState(PlayerState.COMPLETE);
+                        updatePlaybackState(PlayerState.COMPLETE);
 
-                    JSONObject message = new JSONObject();
+                        JSONObject message = new JSONObject();
 
-                    message.put("name", "onComplete");
+                        message.put("name", "onComplete");
 
-                    Log.d(TAG, "onComplete: []");
-                    eventSink.success(message);
+                        Log.d(TAG, "onComplete: []");
+                        eventSink.success(message);
 
-                } catch (Exception e) {
-                    Log.e(TAG, "onComplete: ", e);
+                    } catch (Exception e) {
+                        Log.e(TAG, "onComplete: ", e);
+                    }
                 }
-
             }
         }
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

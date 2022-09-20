@@ -21,6 +21,7 @@ import io.flutter.plugin.common.JSONMethodCodec;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
+import io.flutter.plugin.platform.PlatformViewRegistry;
 import io.flutter.view.FlutterNativeView;
 import tv.mta.flutter_playout.MediaNotificationManagerService;
 
@@ -35,6 +36,10 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     private EventChannel.EventSink eventSink;
 
     private Activity activity;
+
+    private MethodChannel methodChannel;
+
+    private EventChannel eventChannel;
 
     private Context context;
 
@@ -114,26 +119,22 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
 
         this.audioProgressUpdateHandler = new IncomingMessageHandler(this);
 
-        new MethodChannel(messenger, "tv.mta/NativeAudioChannel")
-                .setMethodCallHandler(this);
+        methodChannel = new MethodChannel(messenger, "tv.mta/NativeAudioChannel");
 
-        new EventChannel(messenger, "tv.mta/NativeAudioEventChannel", JSONMethodCodec.INSTANCE)
-                .setStreamHandler(this);
+        methodChannel.setMethodCallHandler(this);
+
+        eventChannel = new EventChannel(messenger, "tv.mta/NativeAudioEventChannel", JSONMethodCodec.INSTANCE);
+
+        eventChannel.setStreamHandler(this);
     }
 
-    public static void registerWith(PluginRegistry.Registrar registrar) {
+    public static AudioPlayer registerWith(BinaryMessenger messenger, Activity activity, Context context) {
 
-        final AudioPlayer plugin = new AudioPlayer(registrar.messenger(), registrar.activeContext());
+        final AudioPlayer plugin = new AudioPlayer(messenger, context);
 
-        plugin.activity = registrar.activity();
+        plugin.activity = activity;
 
-        registrar.addViewDestroyListener(new PluginRegistry.ViewDestroyListener() {
-            @Override
-            public boolean onViewDestroy(FlutterNativeView view) {
-                plugin.onDestroy();
-                return false;
-            }
-        });
+        return plugin;
     }
 
     @Override
@@ -432,6 +433,10 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
             /* reset media duration */
             mediaDuration = 0;
 
+            methodChannel.setMethodCallHandler(null);
+
+            eventChannel.setStreamHandler(null);
+
         } catch (Exception e) { /* ignore */ }
     }
 
@@ -497,5 +502,13 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
                 }
             }
         }
+    }
+
+    public void onAttachActivity(Activity activity) {
+        audioServiceBinder.setActivity(activity);
+    }
+
+    public void onDetachActivity() {
+        onDestroy();
     }
 }
