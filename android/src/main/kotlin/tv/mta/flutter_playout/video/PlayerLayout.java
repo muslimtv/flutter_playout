@@ -30,7 +30,7 @@ import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
@@ -79,12 +79,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      * The notification id.
      */
     private static final int NOTIFICATION_ID = 0;
-    public static ExoPlayer activePlayer;
+    public static SimpleExoPlayer activePlayer;
     private final String TAG = "PlayerLayout";
     /**
-     * Reference to the {@link ExoPlayer}
+     * Reference to the {@link SimpleExoPlayer}
      */
-    ExoPlayer mPlayerView;
+    SimpleExoPlayer mPlayerView;
     boolean isBound = true;
     private PlayerLayout instance;
     /**
@@ -243,7 +243,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         .setPreferredAudioLanguage(this.preferredAudioLanguage)
                         .setPreferredTextLanguage(this.preferredTextLanguage));
 
-        mPlayerView = new ExoPlayer.Builder(context)
+        mPlayerView = new SimpleExoPlayer.Builder(context)
                 .setUseLazyPreparation(true)
                 .setTrackSelector(trackSelector)
                 .build();
