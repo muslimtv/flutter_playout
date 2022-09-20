@@ -25,6 +25,7 @@ class FlutterPlayoutPlugin: FlutterPlugin, ActivityAware {
               flutterPluginBinding.binaryMessenger,
               activity)
     } catch (e: Exception) {
+      Log.d("playerViewFactory.registerWith", e)
     }
 
     try {
