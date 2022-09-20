@@ -19,19 +19,20 @@ class FlutterPlayoutPlugin: FlutterPlugin, ActivityAware {
 
   private lateinit var audioPlayerFactory : AudioPlayer
 
-  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+  override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    this.activity = binding.activity;
     try {
       playerViewFactory = PlayerViewFactory.registerWith(
-              flutterPluginBinding.platformViewRegistry,
-              flutterPluginBinding.binaryMessenger,
+        binding.platformViewRegistry,
+        binding.binaryMessenger,
               activity)
     } catch (e: Exception) {
       Log.d("playerViewFactory", e.toString())
     }
 
     try {
-      audioPlayerFactory = AudioPlayer.registerWith(flutterPluginBinding.binaryMessenger,
-              activity, flutterPluginBinding.applicationContext)
+      audioPlayerFactory = AudioPlayer.registerWith(binding.binaryMessenger,
+              activity, binding.applicationContext)
     } catch (e: Exception) {
     }
   }
