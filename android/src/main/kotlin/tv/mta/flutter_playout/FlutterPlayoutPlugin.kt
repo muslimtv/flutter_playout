@@ -19,21 +19,10 @@ class FlutterPlayoutPlugin: FlutterPlugin, ActivityAware {
 
   private lateinit var audioPlayerFactory : AudioPlayer
 
-  override fun onAttachedToEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-    try {
-      playerViewFactory = PlayerViewFactory.registerWith(
-        binding.platformViewRegistry,
-        binding.binaryMessenger,
-        binding.activity)
-    } catch (e: Exception) {
-      Log.d("playerViewFactory", e.toString())
-    }
+  private lateinit var pluginBinding : FlutterPlugin.FlutterPluginBinding
 
-    try {
-      audioPlayerFactory = AudioPlayer.registerWith(binding.binaryMessenger,
-        binding.activity, binding.applicationContext)
-    } catch (e: Exception) {
-    }
+  override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    pluginBinding = flutterPluginBinding
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -43,6 +32,20 @@ class FlutterPlayoutPlugin: FlutterPlugin, ActivityAware {
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     activity = binding.activity
+    try {
+      playerViewFactory = PlayerViewFactory.registerWith(
+        pluginBinding.platformViewRegistry,
+        pluginBinding.binaryMessenger,
+        activity)
+    } catch (e: Exception) {
+      Log.d("playerViewFactory", e.toString())
+    }
+
+    try {
+      audioPlayerFactory = AudioPlayer.registerWith(pluginBinding.binaryMessenger,
+        activity, pluginBinding.applicationContext)
+    } catch (e: Exception) {
+    }
     playerViewFactory.onAttachActivity(binding.activity)
     audioPlayerFactory.onAttachActivity(binding.activity)
   }
