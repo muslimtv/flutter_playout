@@ -1,6 +1,7 @@
 package tv.mta.flutter_playout
 
 import android.app.Activity
+import android.util.Log
 import tv.mta.flutter_playout.audio.AudioPlayer
 import tv.mta.flutter_playout.video.PlayerViewFactory
 
