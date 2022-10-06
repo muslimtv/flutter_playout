@@ -31,6 +31,7 @@ class Video extends StatefulWidget {
   final String? url;
   final String? title;
   final String? subtitle;
+  final String? artworkUrl;
   final String? preferredAudioLanguage;
   final List<TextTrack>? textTracks;
   final String? preferredTextLanguage;
@@ -47,6 +48,7 @@ class Video extends StatefulWidget {
       this.url,
       this.title = "",
       this.subtitle = "",
+      this.artworkUrl = "",
       this.preferredAudioLanguage = "mul",
       this.preferredTextLanguage = "",
       this.isLiveStream = false,
@@ -92,6 +94,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "artworkUrl": widget.artworkUrl ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
@@ -124,6 +127,7 @@ class _VideoState extends State<Video> {
             "url": widget.url,
             "title": widget.title ?? "",
             "subtitle": widget.subtitle ?? "",
+            "artworkUrl": widget.artworkUrl ?? "",
             "preferredAudioLanguage": widget.preferredAudioLanguage ?? "mul",
             "isLiveStream": widget.isLiveStream,
             "position": widget.position,
@@ -153,7 +157,8 @@ class _VideoState extends State<Video> {
     if (oldWidget.url != widget.url ||
         oldWidget.title != widget.title ||
         oldWidget.subtitle != widget.subtitle ||
-        oldWidget.isLiveStream != widget.isLiveStream) {
+        oldWidget.isLiveStream != widget.isLiveStream ||
+        oldWidget.artworkUrl != widget.artworkUrl) {
       _onMediaChanged();
     }
     if (oldWidget.desiredState != widget.desiredState) {
@@ -256,8 +261,10 @@ class _VideoState extends State<Video> {
           "url": widget.url,
           "title": widget.title,
           "subtitle": widget.subtitle,
+          "artworkUrl": widget.artworkUrl,
           "isLiveStream": widget.isLiveStream,
           "showControls": widget.showControls,
+          "position": widget.position,
         });
       }
     }

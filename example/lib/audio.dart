@@ -15,14 +15,14 @@ class AudioPlayout extends StatefulWidget {
 
   final PlayerState desiredState;
 
-  const AudioPlayout({Key key, this.desiredState}) : super(key: key);
+  const AudioPlayout({Key? key, required this.desiredState}) : super(key: key);
 
   @override
   _AudioPlayout createState() => _AudioPlayout();
 }
 
 class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
-  Audio _audioPlayer;
+  Audio? _audioPlayer;
   PlayerState audioPlayerState = PlayerState.STOPPED;
   bool _loading = false;
   bool _isLive = false;
@@ -102,33 +102,37 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
   }
 
   @override
-  void onTime(int position) {
-    setState(() {
-      currentPlaybackPosition = Duration(seconds: position);
-    });
-  }
-
-  @override
-  void onSeek(int position, double offset) {
-    super.onSeek(position, offset);
-  }
-
-  @override
-  void onDuration(int duration) {
-    if (duration <= 0) {
+  void onTime(int? position) {
+    if (position != null) {
       setState(() {
-        _isLive = true;
-      });
-    } else {
-      setState(() {
-        _isLive = false;
-        this.duration = Duration(milliseconds: duration);
+        currentPlaybackPosition = Duration(seconds: position);
       });
     }
   }
 
   @override
-  void onError(String error) {
+  void onSeek(int? position, double offset) {
+    super.onSeek(position, offset);
+  }
+
+  @override
+  void onDuration(int? duration) {
+    if (duration != null) {
+      if (duration <= 0) {
+        setState(() {
+          _isLive = true;
+        });
+      } else {
+        setState(() {
+          _isLive = false;
+          this.duration = Duration(milliseconds: duration);
+        });
+      }
+    }
+  }
+
+  @override
+  void onError(String? error) {
     super.onError(error);
   }
 
@@ -235,8 +239,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                 )
               : Slider(
                   activeColor: Colors.white,
-                  value: currentPlaybackPosition?.inMilliseconds?.toDouble() ??
-                      0.0,
+                  value: currentPlaybackPosition.inMilliseconds.toDouble(),
                   onChanged: (double value) {
                     seekTo(value);
                   },
@@ -255,7 +258,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
                         _playbackPositionString(),
                         style: Theme.of(context)
                             .textTheme
-                            .bodyText2
+                            .bodyText2!
                             .copyWith(color: Colors.white),
                       ),
                     ),
@@ -281,7 +284,7 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
     // here we send position in case user has scrubbed already before hitting
     // play in which case we want playback to start from where user has
     // requested
-    _audioPlayer.play(widget.url,
+    _audioPlayer?.play(widget.url,
         title: widget.title,
         subtitle: widget.subtitle,
         position: currentPlaybackPosition,
@@ -290,13 +293,13 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
 
   // Request audio pause
   Future<void> pause() async {
-    _audioPlayer.pause();
+    _audioPlayer?.pause();
     setState(() => audioPlayerState = PlayerState.PAUSED);
   }
 
   // Request audio stop. this will also clear lock screen controls
   Future<void> stop() async {
-    _audioPlayer.reset();
+    _audioPlayer?.reset();
 
     setState(() {
       audioPlayerState = PlayerState.STOPPED;
@@ -309,13 +312,13 @@ class _AudioPlayout extends State<AudioPlayout> with PlayerObserver {
     setState(() {
       currentPlaybackPosition = Duration(milliseconds: milliseconds.toInt());
     });
-    _audioPlayer.seekTo(milliseconds / 1000);
+    _audioPlayer?.seekTo(milliseconds / 1000);
   }
 
   @override
   void dispose() {
     if (mounted) {
-      _audioPlayer.dispose();
+      _audioPlayer?.dispose();
     }
     super.dispose();
   }

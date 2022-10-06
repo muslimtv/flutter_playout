@@ -8,29 +8,24 @@ import io.flutter.plugin.common.JSONMessageCodec;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.platform.PlatformView;
 import io.flutter.plugin.platform.PlatformViewFactory;
+import io.flutter.plugin.platform.PlatformViewRegistry;
 import io.flutter.view.FlutterNativeView;
 
 public class PlayerViewFactory extends PlatformViewFactory {
 
-    private final Activity activity;
+    private Activity activity;
 
     private PlayerView playerView;
 
-    private BinaryMessenger messenger;
+    private final BinaryMessenger messenger;
 
-    public static void registerWith(PluginRegistry.Registrar registrar) {
+    public static PlayerViewFactory registerWith(PlatformViewRegistry viewRegistry, BinaryMessenger messenger, Activity activity) {
 
-        final PlayerViewFactory plugin = new PlayerViewFactory(registrar.messenger(), registrar.activity());
+        final PlayerViewFactory plugin = new PlayerViewFactory(messenger, activity);
 
-        registrar.platformViewRegistry().registerViewFactory("tv.mta/NativeVideoPlayer", plugin);
+        viewRegistry.registerViewFactory("tv.mta/NativeVideoPlayer", plugin);
 
-        registrar.addViewDestroyListener(new PluginRegistry.ViewDestroyListener() {
-            @Override
-            public boolean onViewDestroy(FlutterNativeView view) {
-                plugin.onDestroy();
-                return false;
-            }
-        });
+        return plugin;
     }
 
     public PlayerViewFactory(BinaryMessenger messenger, Activity activity) {
@@ -56,5 +51,14 @@ public class PlayerViewFactory extends PlatformViewFactory {
 
             playerView.dispose();
         }
+    }
+
+    public void onAttachActivity(Activity activity) {
+        this.activity = activity;
+        playerView.setActivity(activity);
+    }
+
+    public void onDetachActivity() {
+        onDestroy();
     }
 }

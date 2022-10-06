@@ -6,13 +6,15 @@ import 'package:flutter_playout/multiaudio/MultiAudioSupport.dart';
 import 'package:flutter_playout/player_observer.dart';
 import 'package:flutter_playout/player_state.dart';
 import 'package:flutter_playout/video.dart';
-import 'package:flutter_playout_example/hls/getManifestLanguages.dart';
+
+import 'hls/getManifestLanguages.dart';
 
 class VideoPlayout extends StatefulWidget {
   final PlayerState desiredState;
   final bool showPlayerControls;
 
-  const VideoPlayout({Key key, this.desiredState, this.showPlayerControls})
+  const VideoPlayout(
+      {Key? key, required this.desiredState, required this.showPlayerControls})
       : super(key: key);
 
   @override
@@ -21,7 +23,7 @@ class VideoPlayout extends StatefulWidget {
 
 class _VideoPlayoutState extends State<VideoPlayout>
     with PlayerObserver, MultiAudioSupport {
-  final String _url = null;
+  final String? _url = null;
   List<HLSManifestLanguage> _hlsLanguages = [];
 
   @override
@@ -31,8 +33,8 @@ class _VideoPlayoutState extends State<VideoPlayout>
   }
 
   Future<void> _getHLSManifestLanguages() async {
-    if (!Platform.isIOS && _url != null && _url.isNotEmpty) {
-      _hlsLanguages = await getManifestLanguages(_url);
+    if (!Platform.isIOS && _url != null && _url!.isNotEmpty) {
+      _hlsLanguages = await getManifestLanguages(_url!);
       setState(() {});
     }
   }
@@ -50,6 +52,7 @@ class _VideoPlayoutState extends State<VideoPlayout>
               showControls: widget.showPlayerControls,
               title: "MTA International",
               subtitle: "Reaching The Corners Of The Earth",
+              artworkUrl: "",
               preferredAudioLanguage: "eng",
               isLiveStream: false,
               position: 0,
@@ -68,14 +71,14 @@ class _VideoPlayoutState extends State<VideoPlayout>
                     children: _hlsLanguages
                         .map((e) => MaterialButton(
                               child: Text(
-                                e.name,
+                                e.name ?? "",
                                 style: Theme.of(context)
                                     .textTheme
-                                    .button
+                                    .button!
                                     .copyWith(color: Colors.white),
                               ),
                               onPressed: () {
-                                setPreferredAudioLanguage(e.code);
+                                setPreferredAudioLanguage(e.code ?? "eng");
                               },
                             ))
                         .toList(),
@@ -110,25 +113,25 @@ class _VideoPlayoutState extends State<VideoPlayout>
   }
 
   @override
-  void onTime(int position) {
+  void onTime(int? position) {
     // TODO: implement onTime
     super.onTime(position);
   }
 
   @override
-  void onSeek(int position, double offset) {
+  void onSeek(int? position, double offset) {
     // TODO: implement onSeek
     super.onSeek(position, offset);
   }
 
   @override
-  void onDuration(int duration) {
+  void onDuration(int? duration) {
     // TODO: implement onDuration
     super.onDuration(duration);
   }
 
   @override
-  void onError(String error) {
+  void onError(String? error) {
     // TODO: implement onError
     super.onError(error);
   }

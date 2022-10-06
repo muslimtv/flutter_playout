@@ -1,3 +1,15 @@
+## 2.0.2-rc2 [April 25, 2022]
+
+* See [ISSUE-85](https://github.com/muslimtv/flutter_playout/issues/85)
+
+## 2.0.2-rc1 [January 21, 2022]
+
+* Android v2 embedding API
+* ExoPlayer v2.16.1
+* Adds support for artwork (url) in lock screen media info panel ([PR-#68](https://github.com/muslimtv/flutter_playout/pull/68))
+* Merges [PR-#67](https://github.com/muslimtv/flutter_playout/pull/67)
+* Merges [PR-#80](https://github.com/muslimtv/flutter_playout/pull/80)
+
 ## 2.0.1 [June 12, 2021]
 
 * Set iOS deployment target to 9.0
