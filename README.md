@@ -16,17 +16,6 @@ See below for example of apps using flutter_playout.
 1. MTA International ([iOS](https://apps.apple.com/us/app/mta-international/id942619881) - [Android](https://play.google.com/store/apps/details?id=tv.mta.apps.muslimtv))
 
 Send a pull request to list your app here.
-
-#### iOS Example
-||||
-:---: |:---:| :---:
-![screenshot1](sc1.png)|![screenshot4](sc4.png)|![screenshot3](sc3.png)
-
-#### Android Example
-|||
-:---: |:---:
-![screenshot5](sc5.png)|![screenshot6](sc6.png)
-
 ## Getting Started
 
 ### Android
