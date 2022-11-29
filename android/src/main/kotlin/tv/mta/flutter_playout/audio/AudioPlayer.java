@@ -505,9 +505,7 @@ public class AudioPlayer implements MethodChannel.MethodCallHandler, EventChanne
     }
 
     public void onAttachActivity(Activity activity) {
-        if (audioServiceBinder != null) {
-            audioServiceBinder.setActivity(activity);
-        }
+        audioServiceBinder.setActivity(activity);
     }
 
     public void onDetachActivity() {

@@ -29,24 +29,18 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
-import com.google.android.exoplayer2.source.SingleSampleMediaSource;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+import com.google.android.exoplayer2.source.SingleSampleMediaSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
-import com.google.android.exoplayer2.ui.PlayerNotificationManager;
-import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
@@ -56,6 +50,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
@@ -66,7 +61,7 @@ import tv.mta.flutter_playout.PlayerNotificationUtil;
 import tv.mta.flutter_playout.PlayerState;
 import tv.mta.flutter_playout.R;
 
-public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventChannel.StreamHandler {
+public class PlayerLayout extends StyledPlayerView implements FlutterAVPlayer, EventChannel.StreamHandler {
     /**
      * The notification channel id we'll send notifications too
      */
@@ -79,12 +74,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      * The notification id.
      */
     private static final int NOTIFICATION_ID = 0;
-    public static SimpleExoPlayer activePlayer;
+    public static ExoPlayer activePlayer;
     private final String TAG = "PlayerLayout";
     /**
-     * Reference to the {@link SimpleExoPlayer}
+     * Reference to the {@link ExoPlayer}
      */
-    SimpleExoPlayer mPlayerView;
+    ExoPlayer mPlayerView;
     boolean isBound = true;
     private PlayerLayout instance;
     /**
@@ -94,6 +89,9 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     /**
      * An instance of Flutter event sink
      */
+
+    private EventChannel eventChannel;
+
     private EventChannel.EventSink eventSink;
     /**
      * App main activity
@@ -144,7 +142,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     /**
      * The {@link ServiceConnection} serves as glue between this activity and the {@link MediaNotificationManagerService}.
      */
-    private ServiceConnection mMediaNotificationManagerServiceConnection = new ServiceConnection() {
+    private final ServiceConnection mMediaNotificationManagerServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
 
@@ -243,7 +241,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
                         .setPreferredAudioLanguage(this.preferredAudioLanguage)
                         .setPreferredTextLanguage(this.preferredTextLanguage));
 
-        mPlayerView = new SimpleExoPlayer.Builder(context)
+        mPlayerView = new ExoPlayer.Builder(context)
                 .setUseLazyPreparation(true)
                 .setTrackSelector(trackSelector)
                 .build();
@@ -267,10 +265,12 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
         this.setPlayer(mPlayerView);
 
-        new EventChannel(
+        eventChannel = new EventChannel(
                 messenger,
                 "tv.mta/NativeVideoPlayerEventChannel_" + this.viewId,
-                JSONMethodCodec.INSTANCE).setStreamHandler(this);
+                JSONMethodCodec.INSTANCE);
+
+        eventChannel.setStreamHandler(this);
 
         updateMediaSource();
 
@@ -518,7 +518,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                         message.put("time", mPlayerView.getCurrentPosition() / 1000);
 
-                        Log.d(TAG, "onTime: [time=" + mPlayerView.getCurrentPosition() / 1000 + "]");
+                        //Log.d(TAG, "onTime: [time=" + mPlayerView.getCurrentPosition() / 1000 + "]");
                         eventSink.success(message);
                     }
 
@@ -551,9 +551,11 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
          * https://tools.ietf.org/html/rfc8216
          */
         if(this.url.contains(".m3u8") || this.url.contains(".m3u")) {
-            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            Log.d("tag", this.url);
+            videoSource = new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(this.url)));
         } else {
-            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(Uri.parse(this.url));
+            Log.d("tag", this.url);
+            videoSource = new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(MediaItem.fromUri(Uri.parse(this.url)));
         }
 
         mPlayerView.prepare(withSubtitles(dataSourceFactory, videoSource));
@@ -562,7 +564,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
     /**
      * Adds subtitles to the media source (if provided).
      *
-     * @param source
+     * source
      * @return MediaSource with subtitles source included
      */
     private MediaSource withSubtitles(DataSource.Factory dataSourceFactory, MediaSource source) {
@@ -634,7 +636,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
 
                 HashMap<String, Object> args = (HashMap<String, Object>) arguments;
 
-                boolean sc = Boolean.parseBoolean(args.get("showControls").toString());
+                boolean sc = Boolean.parseBoolean(Objects.requireNonNull(args.get("showControls")).toString());
 
                 setUseController(sc);
             }
@@ -646,7 +648,7 @@ public class PlayerLayout extends PlayerView implements FlutterAVPlayer, EventCh
      * set audio language for player - language must be one of available in HLS manifest
      * currently playing
      *
-     * @param arguments
+     * arguments
      */
     public void setPreferredAudioLanguage(Object arguments) {
         try {
