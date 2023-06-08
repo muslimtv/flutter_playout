@@ -1,3 +1,7 @@
+## 2.0.2-rc3 [June 8, 2023]
+
+* Updated kotlin to 1.6.0
+
 ## 2.0.2-rc2 [April 25, 2022]
 
 * See [ISSUE-85](https://github.com/muslimtv/flutter_playout/issues/85)
